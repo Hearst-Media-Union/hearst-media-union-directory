@@ -1,9 +1,9 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import LandingPage from './components/pages/LandingPage.vue'
+</script>
 
 <template>
-  <main>
-    
-  </main>
+  <div class="mx-auto my-0 max-w-7xl">
+    <LandingPage />
+  </div>
 </template>
-
-<style scoped></style>
