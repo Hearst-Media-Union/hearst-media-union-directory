@@ -1,5 +1,6 @@
 import { getExistingMembers } from '../adapters/getExistingMembers.js'
 import { buildDryRunReport } from '../engine/buildDryRunReport.js'
+import { applyImport } from '../execution/applyImport.js'
 import { mapActiveRow, mapLeaverRow, mapPromotionRow } from '../mapping/mapImportRow.js'
 import { normalizeRow } from '../normalize/normalizeRow.js'
 import { getSheetHeaders } from '../workbook/getSheetHeaders.js'
@@ -8,9 +9,15 @@ import { loadWorkbook } from '../workbook/loadWorkbook.js'
 const DEBUG = false
 
 const filePath = process.argv[2]
+const modeArg = process.argv[3] ?? 'dry_run'
 
 if (!filePath) {
-  console.error('Usage: npm run dev <path-to-xlsx>')
+  console.error('Usage: npm run dev <path-to-xlsx> [dry_run|apply]')
+  process.exit(1)
+}
+
+if (modeArg !== 'dry_run' && modeArg !== 'apply') {
+  console.error('Mode must be either "dry_run" or "apply"')
   process.exit(1)
 }
 
@@ -211,6 +218,18 @@ function logSampleHistoryRows(
 
 async function main(): Promise<void> {
   try {
+    if (modeArg === 'apply') {
+      const applySummary = await applyImport({
+        workbookPath: filePath,
+        sourceFilename: filePath.split('/').pop() ?? filePath,
+        monthLabel: new Date().toISOString().slice(0, 7),
+      })
+
+      console.log('Apply summary:')
+      console.dir(applySummary, { depth: null })
+      return
+    }
+
     const workbook = loadWorkbook(filePath)
     const existingMembers = await getExistingMembers(workbook.rows)
     const dryRunReport = buildDryRunReport(filePath, existingMembers)
