@@ -209,77 +209,81 @@ function logSampleHistoryRows(
   console.table(items.slice(0, limit))
 }
 
-try {
-  const workbook = loadWorkbook(filePath)
-  const existingMembers = getExistingMembers(workbook.rows)
-  const dryRunReport = buildDryRunReport(filePath, existingMembers)
+async function main(): Promise<void> {
+  try {
+    const workbook = loadWorkbook(filePath)
+    const existingMembers = await getExistingMembers(workbook.rows)
+    const dryRunReport = buildDryRunReport(filePath, existingMembers)
 
-  console.log('Dry run report:')
-  console.dir(
-    {
-      workbook: dryRunReport.workbook,
-      counts: dryRunReport.counts,
-      validation: dryRunReport.validation,
-      duplicates: dryRunReport.duplicates,
-      overlaps: dryRunReport.overlaps,
-      importPlan: dryRunReport.importPlan,
-      memberActionPlan: dryRunReport.memberActionPlan,
-      coreMemberFieldUpdatePlan: dryRunReport.coreMemberFieldUpdatePlan,
-      sensitiveDetailPlan: dryRunReport.sensitiveDetailPlan,
-      historyActionPlan: dryRunReport.historyActionPlan,
-    },
-    { depth: null },
-  )
-  console.log('')
-  console.log('Sample planned actions:')
-  logSampleMemberUpdates(dryRunReport.sampleActions.memberUpdates)
-  console.log('')
-  logSampleMemberInactivations(dryRunReport.sampleActions.memberInactivations)
-  console.log('')
-  logSampleCoreMemberFieldUpdates(dryRunReport.sampleActions.coreMemberFieldUpdates)
-  console.log('')
-  logSampleSensitiveDetailUpdates(dryRunReport.sampleActions.sensitiveDetailUpdates)
-  console.log('')
-  logSampleHistoryRows(dryRunReport.sampleActions.historyRows)
+    console.log('Dry run report:')
+    console.dir(
+      {
+        workbook: dryRunReport.workbook,
+        counts: dryRunReport.counts,
+        validation: dryRunReport.validation,
+        duplicates: dryRunReport.duplicates,
+        overlaps: dryRunReport.overlaps,
+        importPlan: dryRunReport.importPlan,
+        memberActionPlan: dryRunReport.memberActionPlan,
+        coreMemberFieldUpdatePlan: dryRunReport.coreMemberFieldUpdatePlan,
+        sensitiveDetailPlan: dryRunReport.sensitiveDetailPlan,
+        historyActionPlan: dryRunReport.historyActionPlan,
+      },
+      { depth: null },
+    )
+    console.log('')
+    console.log('Sample planned actions:')
+    logSampleMemberUpdates(dryRunReport.sampleActions.memberUpdates)
+    console.log('')
+    logSampleMemberInactivations(dryRunReport.sampleActions.memberInactivations)
+    console.log('')
+    logSampleCoreMemberFieldUpdates(dryRunReport.sampleActions.coreMemberFieldUpdates)
+    console.log('')
+    logSampleSensitiveDetailUpdates(dryRunReport.sampleActions.sensitiveDetailUpdates)
+    console.log('')
+    logSampleHistoryRows(dryRunReport.sampleActions.historyRows)
 
-  if (DEBUG) {
-    console.log('')
-    console.log('Headers:')
-    logHeaders('active', getSheetHeaders(dryRunReport.debug.sheets.active))
-    console.log('')
-    logHeaders('leavers', getSheetHeaders(dryRunReport.debug.sheets.leavers))
-    console.log('')
-    logHeaders('promotions', getSheetHeaders(dryRunReport.debug.sheets.promotions))
-    console.log('')
-    console.log('Raw sample rows:')
-    logSampleRow('active', dryRunReport.debug.rows.active)
-    console.log('')
-    logSampleRow('leavers', dryRunReport.debug.rows.leavers)
-    console.log('')
-    logSampleRow('promotions', dryRunReport.debug.rows.promotions)
-    console.log('')
-    console.log('Normalized sample rows:')
-    logNormalizedSampleRow('active', dryRunReport.debug.rows.active)
-    console.log('')
-    logNormalizedSampleRow('leavers', dryRunReport.debug.rows.leavers)
-    console.log('')
-    logNormalizedSampleRow('promotions', dryRunReport.debug.rows.promotions)
-    console.log('')
-    console.log('Mapped sample rows:')
-    logMappedActiveSampleRow(dryRunReport.debug.rows.active)
-    console.log('')
-    logMappedLeaverSampleRow(dryRunReport.debug.rows.leavers)
-    console.log('')
-    logMappedPromotionSampleRow(dryRunReport.debug.rows.promotions)
+    if (DEBUG) {
+      console.log('')
+      console.log('Headers:')
+      logHeaders('active', getSheetHeaders(dryRunReport.debug.sheets.active))
+      console.log('')
+      logHeaders('leavers', getSheetHeaders(dryRunReport.debug.sheets.leavers))
+      console.log('')
+      logHeaders('promotions', getSheetHeaders(dryRunReport.debug.sheets.promotions))
+      console.log('')
+      console.log('Raw sample rows:')
+      logSampleRow('active', dryRunReport.debug.rows.active)
+      console.log('')
+      logSampleRow('leavers', dryRunReport.debug.rows.leavers)
+      console.log('')
+      logSampleRow('promotions', dryRunReport.debug.rows.promotions)
+      console.log('')
+      console.log('Normalized sample rows:')
+      logNormalizedSampleRow('active', dryRunReport.debug.rows.active)
+      console.log('')
+      logNormalizedSampleRow('leavers', dryRunReport.debug.rows.leavers)
+      console.log('')
+      logNormalizedSampleRow('promotions', dryRunReport.debug.rows.promotions)
+      console.log('')
+      console.log('Mapped sample rows:')
+      logMappedActiveSampleRow(dryRunReport.debug.rows.active)
+      console.log('')
+      logMappedLeaverSampleRow(dryRunReport.debug.rows.leavers)
+      console.log('')
+      logMappedPromotionSampleRow(dryRunReport.debug.rows.promotions)
+    }
+  } catch (error) {
+    console.error('Import failed:')
+
+    if (error instanceof Error) {
+      console.error(error.message)
+    } else {
+      console.error(error)
+    }
+
+    process.exit(1)
   }
-} catch (error) {
-  console.error('Import failed:')
-
-  if (error instanceof Error) {
-    console.error(error.message)
-  } else {
-    console.error(error)
-  }
-
-  process.exit(1)
 }
+
+await main()
