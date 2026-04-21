@@ -33,17 +33,17 @@
     </PageContainer>
   </div>
   <BaseDrawer v-if="isOpen">
-    <div class="px-4 pb-6">
-      <div class="mb-6 flex items-center justify-between">
+    <template #header>
+      <div class="flex items-center justify-between">
         <h2 class="text-xl font-semibold text-(--color-app-text)">Menu</h2>
         <button class="text-sm text-(--color-brand-red)/60" @click="isOpen = false">Close</button>
       </div>
+    </template>
 
-      <div class="flex flex-col gap-4 text-(--color-app-text)">
-        <span>Directory</span>
-        <span>Committees</span>
-        <span>Resources</span>
-      </div>
+    <div class="flex flex-col gap-4 py-2 text-(--color-app-text)">
+      <span>Directory</span>
+      <span>Committees</span>
+      <span>Resources</span>
     </div>
   </BaseDrawer>
 </template>
