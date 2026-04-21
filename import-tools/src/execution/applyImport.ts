@@ -571,6 +571,22 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
     }
   }
 
+  const { error: finalizeBatchError } = await supabase
+    .from('import_batches')
+    .update({
+      status: 'completed',
+      created_count: membersToCreate.length,
+      updated_count: membersToUpdate.length,
+      inactive_count: inactiveCount,
+    })
+    .eq('id', importBatchId)
+
+  if (finalizeBatchError) {
+    throw new Error(
+      `Failed to finalize import batch ${importBatchId}: ${finalizeBatchError.message}`,
+    )
+  }
+
   return {
     mode: 'apply',
     importBatchId,
