@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { loadWorkbook } from '../workbook/loadWorkbook.js'
+import { mapActiveRow } from '../mapping/mapImportRow.js'
+import { getExistingMembers } from '../adapters/getExistingMembers.js'
 
 export type ImportExecutionMode = 'dry_run' | 'apply'
 
@@ -45,6 +47,24 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
   const workbook = loadWorkbook(input.workbookPath)
   const processedCount = countProcessedRows(workbook)
 
+  // map active rows
+  const activeRows = workbook.rows.active.map(mapActiveRow)
+
+  // fetch existing members
+  const existingMembers = await getExistingMembers(workbook.rows)
+  const existingByEmployeeNumber = new Map(existingMembers.map((m) => [m.employeeNumber, m]))
+
+  // determine new members to create
+  const membersToCreate = activeRows.filter(
+    (row) => row.employeeNumber && !existingByEmployeeNumber.has(row.employeeNumber),
+  )
+
+  // determine existing members to update
+  const membersToUpdate = activeRows.filter(
+    (row) => row.employeeNumber && existingByEmployeeNumber.has(row.employeeNumber),
+  )
+
+  // create import batch
   const { data, error } = await supabase
     .from('import_batches')
     .insert({
@@ -63,12 +83,79 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
 
   const importBatchId = data?.id ?? null
 
+  // create members
+  if (membersToCreate.length > 0) {
+    const { error: insertMembersError } = await supabase.from('members').insert(
+      membersToCreate.map((row) => ({
+        employee_number: row.employeeNumber,
+        member_source: 'hearst_import',
+        is_active: true,
+        inactive_reason: null,
+        inactive_at: null,
+        legal_first_name: row.legalFirstName,
+        legal_last_name: row.legalLastName,
+        preferred_name: row.preferredName,
+        work_email: row.workEmail,
+        primary_phone: row.primaryPhone,
+        location: row.location,
+        assignment_name: row.assignmentName,
+        unit_title: row.unitTitle,
+        brand: row.brand,
+        unit_tier: row.unitTier,
+        last_seen_import_batch_id: importBatchId,
+      })),
+    )
+
+    if (insertMembersError) {
+      throw new Error(`Failed to create members: ${insertMembersError.message}`)
+    }
+  }
+
+  // update existing members from active sheet
+  for (const row of membersToUpdate) {
+    if (!row.employeeNumber) {
+      continue
+    }
+
+    const existingMember = existingByEmployeeNumber.get(row.employeeNumber)
+
+    if (!existingMember) {
+      continue
+    }
+
+    const { error: updateMemberError } = await supabase
+      .from('members')
+      .update({
+        is_active: true,
+        inactive_reason: null,
+        inactive_at: null,
+        legal_first_name: row.legalFirstName,
+        legal_last_name: row.legalLastName,
+        preferred_name: row.preferredName,
+        work_email: row.workEmail,
+        primary_phone: row.primaryPhone,
+        location: row.location,
+        assignment_name: row.assignmentName,
+        unit_title: row.unitTitle,
+        brand: row.brand,
+        unit_tier: row.unitTier,
+        last_seen_import_batch_id: importBatchId,
+      })
+      .eq('id', existingMember.memberId)
+
+    if (updateMemberError) {
+      throw new Error(
+        `Failed to update member ${existingMember.memberId}: ${updateMemberError.message}`,
+      )
+    }
+  }
+
   return {
     mode: 'apply',
     importBatchId,
     processedCount,
-    createdCount: 0,
-    updatedCount: 0,
+    createdCount: membersToCreate.length,
+    updatedCount: membersToUpdate.length,
     inactiveCount: 0,
     snapshotCount: 0,
     historyRowCount: 0,
