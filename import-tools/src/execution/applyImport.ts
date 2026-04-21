@@ -180,6 +180,9 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
     throw new Error('Import batch was created without an id')
   }
 
+  let inactiveCount = 0
+  let historyRowCount = 0
+
   const snapshotRows = [
     ...buildActiveSnapshots(importBatchId, activeRows, workbook.rows.active),
     ...buildLeaverSnapshots(importBatchId, leaverRows, workbook.rows.leavers),
@@ -277,6 +280,67 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
       continue
     }
 
+    // ---- HISTORY DETECTION ----
+    const historyRows: Array<{
+      member_id: string
+      import_batch_id: string
+      change_source: 'import'
+      field_name: string
+      old_value: string | null
+      new_value: string | null
+    }> = []
+
+    // assignment_name
+    if ((existingMember.assignmentName ?? null) !== (row.assignmentName ?? null)) {
+      historyRows.push({
+        member_id: existingMember.memberId,
+        import_batch_id: importBatchId,
+        change_source: 'import',
+        field_name: 'assignment_name',
+        old_value: existingMember.assignmentName ?? null,
+        new_value: row.assignmentName ?? null,
+      })
+    }
+
+    // unit_title
+    if ((existingMember.unitTitle ?? null) !== (row.unitTitle ?? null)) {
+      historyRows.push({
+        member_id: existingMember.memberId,
+        import_batch_id: importBatchId,
+        change_source: 'import',
+        field_name: 'unit_title',
+        old_value: existingMember.unitTitle ?? null,
+        new_value: row.unitTitle ?? null,
+      })
+    }
+
+    // is_active (reactivation)
+    if (existingMember.isActive === false) {
+      historyRows.push({
+        member_id: existingMember.memberId,
+        import_batch_id: importBatchId,
+        change_source: 'import',
+        field_name: 'is_active',
+        old_value: 'false',
+        new_value: 'true',
+      })
+    }
+
+    // insert history rows if any
+    if (historyRows.length > 0) {
+      const { error: historyError } = await supabase
+        .from('member_change_history')
+        .insert(historyRows)
+
+      if (historyError) {
+        throw new Error(
+          `Failed to insert history for member ${existingMember.memberId}: ${historyError.message}`,
+        )
+      }
+
+      historyRowCount += historyRows.length
+    }
+
     const { error: updateMemberError } = await supabase
       .from('members')
       .update({
@@ -303,8 +367,6 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
       )
     }
   }
-
-  let inactiveCount = 0
 
   // process leavers
   for (const row of leaverRows) {
@@ -386,7 +448,7 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
     updatedCount: membersToUpdate.length,
     inactiveCount,
     snapshotCount: snapshotRows.length,
-    historyRowCount: 0,
+    historyRowCount,
     sensitiveDetailUpdateCount: sensitiveRows.length,
     warningCount: 0,
     errorCount: 0,
