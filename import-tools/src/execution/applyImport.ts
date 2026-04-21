@@ -366,6 +366,21 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
         `Failed to update member ${existingMember.memberId}: ${updateMemberError.message}`,
       )
     }
+
+    existingByEmployeeNumber.set(row.employeeNumber, {
+      ...existingMember,
+      isActive: true,
+      legalFirstName: row.legalFirstName,
+      legalLastName: row.legalLastName,
+      preferredName: row.preferredName,
+      workEmail: row.workEmail,
+      primaryPhone: row.primaryPhone,
+      location: row.location,
+      assignmentName: row.assignmentName,
+      unitTitle: row.unitTitle,
+      brand: row.brand,
+      unitTier: row.unitTier,
+    })
   }
 
   // process leavers
@@ -380,13 +395,34 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
       continue
     }
 
+    const inactiveReason = row.sourceActionName
+      ? row.sourceActionName.trim().toLowerCase().replace(/\s+/g, '_')
+      : 'left_company'
+
+    if (existingMember.isActive === true) {
+      const { error: historyError } = await supabase.from('member_change_history').insert({
+        member_id: existingMember.memberId,
+        import_batch_id: importBatchId,
+        change_source: 'import',
+        field_name: 'is_active',
+        old_value: 'true',
+        new_value: 'false',
+      })
+
+      if (historyError) {
+        throw new Error(
+          `Failed to insert history for member ${existingMember.memberId}: ${historyError.message}`,
+        )
+      }
+
+      historyRowCount++
+    }
+
     const { error } = await supabase
       .from('members')
       .update({
         is_active: false,
-        inactive_reason: row.sourceActionName
-          ? row.sourceActionName.trim().toLowerCase().replace(/\s+/g, '_')
-          : 'left_company',
+        inactive_reason: inactiveReason,
         inactive_at: row.inactiveAt,
         last_seen_import_batch_id: importBatchId,
       })
@@ -395,6 +431,11 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
     if (error) {
       throw new Error(`Failed to inactivate member ${existingMember.memberId}: ${error.message}`)
     }
+
+    existingByEmployeeNumber.set(row.employeeNumber, {
+      ...existingMember,
+      isActive: false,
+    })
 
     inactiveCount++
   }
@@ -411,6 +452,25 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
       continue
     }
 
+    if (existingMember.isActive === true) {
+      const { error: historyError } = await supabase.from('member_change_history').insert({
+        member_id: existingMember.memberId,
+        import_batch_id: importBatchId,
+        change_source: 'import',
+        field_name: 'is_active',
+        old_value: 'true',
+        new_value: 'false',
+      })
+
+      if (historyError) {
+        throw new Error(
+          `Failed to insert history for member ${existingMember.memberId}: ${historyError.message}`,
+        )
+      }
+
+      historyRowCount++
+    }
+
     const { error } = await supabase
       .from('members')
       .update({
@@ -424,6 +484,11 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
     if (error) {
       throw new Error(`Failed to inactivate member ${existingMember.memberId}: ${error.message}`)
     }
+
+    existingByEmployeeNumber.set(row.employeeNumber, {
+      ...existingMember,
+      isActive: false,
+    })
 
     inactiveCount++
   }
