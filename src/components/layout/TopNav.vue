@@ -24,9 +24,9 @@
             @click="isOpen = true"
           >
             <div class="flex flex-col gap-1">
-              <span class="block h-[2px] w-5 bg-white"></span>
-              <span class="block h-[2px] w-5 bg-white"></span>
-              <span class="block h-[2px] w-5 bg-white"></span>
+              <span class="block h-0.5 w-5 bg-white"></span>
+              <span class="block h-0.5 w-5 bg-white"></span>
+              <span class="block h-0.5 w-5 bg-white"></span>
             </div>
           </button>
         </div>
