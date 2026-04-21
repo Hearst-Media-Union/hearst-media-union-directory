@@ -40,10 +40,12 @@
       </div>
     </template>
 
-    <div class="flex flex-col gap-4 py-2 text-(--color-app-text)">
-      <span>Directory</span>
-      <span>Committees</span>
-      <span>Resources</span>
+    <div class="flex flex-col divide-y divide-(--color-app-border)">
+      <button class="py-4 text-left text-(--color-app-text)">Directory</button>
+
+      <button class="py-4 text-left text-(--color-app-text)">Committees</button>
+
+      <button class="py-4 text-left text-(--color-app-text)">Resources</button>
     </div>
   </BaseDrawer>
 </template>
