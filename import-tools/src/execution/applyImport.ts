@@ -495,6 +495,72 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
 
   const sensitiveRows = buildSensitiveDetailRows(activeRows, existingByEmployeeNumber)
 
+  const salaryHistoryRows: Array<{
+    member_id: string
+    import_batch_id: string
+    change_source: 'import'
+    field_name: string
+    old_value: string | null
+    new_value: string | null
+  }> = []
+
+  for (const row of activeRows) {
+    if (!row.employeeNumber) {
+      continue
+    }
+
+    const existingMember = existingByEmployeeNumber.get(row.employeeNumber)
+
+    if (!existingMember) {
+      continue
+    }
+
+    const { data: existingSensitiveRow, error: existingSensitiveError } = await supabase
+      .from('member_sensitive_details')
+      .select('annual_salary_or_hourly_rate')
+      .eq('member_id', existingMember.memberId)
+      .maybeSingle()
+
+    if (existingSensitiveError) {
+      throw new Error(
+        `Failed to load existing sensitive details for ${existingMember.memberId}: ${existingSensitiveError.message}`,
+      )
+    }
+
+    const oldSalary =
+      existingSensitiveRow?.annual_salary_or_hourly_rate != null
+        ? String(existingSensitiveRow.annual_salary_or_hourly_rate)
+        : null
+
+    const newSalary =
+      row.annualSalaryOrHourlyRate != null ? String(row.annualSalaryOrHourlyRate) : null
+
+    if (oldSalary === newSalary) {
+      continue
+    }
+
+    salaryHistoryRows.push({
+      member_id: existingMember.memberId,
+      import_batch_id: importBatchId,
+      change_source: 'import',
+      field_name: 'salary',
+      old_value: oldSalary,
+      new_value: newSalary,
+    })
+  }
+
+  if (salaryHistoryRows.length > 0) {
+    const { error: salaryHistoryError } = await supabase
+      .from('member_change_history')
+      .insert(salaryHistoryRows)
+
+    if (salaryHistoryError) {
+      throw new Error(`Failed to insert salary history: ${salaryHistoryError.message}`)
+    }
+
+    historyRowCount += salaryHistoryRows.length
+  }
+
   if (sensitiveRows.length > 0) {
     const { error: sensitiveError } = await supabase
       .from('member_sensitive_details')
