@@ -12,10 +12,22 @@
           </span>
         </div>
 
-        <div class="flex items-center gap-6 text-sm">
-          <span class="cursor-pointer">Directory</span>
-          <span class="cursor-pointer">Committees</span>
-          <span class="cursor-pointer">Resources</span>
+        <div class="flex items-center">
+          <!-- Desktop nav -->
+          <div class="hidden md:flex items-center gap-6 text-sm">
+            <span class="cursor-pointer">Directory</span>
+            <span class="cursor-pointer">Committees</span>
+            <span class="cursor-pointer">Resources</span>
+          </div>
+
+          <!-- Mobile hamburger -->
+          <button class="ml-4 flex md:hidden items-center justify-center">
+            <div class="flex flex-col gap-1">
+              <span class="block h-0.5 w-5 bg-white"></span>
+              <span class="block h-0.5 w-5 bg-white"></span>
+              <span class="block h-0.5 w-5 bg-white"></span>
+            </div>
+          </button>
         </div>
       </div>
     </PageContainer>
