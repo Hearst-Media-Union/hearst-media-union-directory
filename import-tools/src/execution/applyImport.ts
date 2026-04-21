@@ -110,6 +110,30 @@ function buildPromotionSnapshots(
   }))
 }
 
+function buildSensitiveDetailRows(
+  activeRows: ReturnType<typeof mapActiveRow>[],
+  existingByEmployeeNumber: Map<string, { memberId: string }>,
+) {
+  return activeRows
+    .filter((row) => row.employeeNumber)
+    .map((row) => {
+      const existing = existingByEmployeeNumber.get(row.employeeNumber!)
+
+      if (!existing) {
+        return null
+      }
+
+      return {
+        member_id: existing.memberId,
+        annual_salary_or_hourly_rate: row.annualSalaryOrHourlyRate,
+        date_of_birth: row.dateOfBirth,
+        gender: row.gender,
+        ethnicity: row.ethnicity,
+      }
+    })
+    .filter((row): row is NonNullable<typeof row> => row !== null)
+}
+
 export async function applyImport(input: ApplyImportInput): Promise<ApplyImportSummary> {
   const workbook = loadWorkbook(input.workbookPath)
   const processedCount = countProcessedRows(workbook)
@@ -341,6 +365,19 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
 
     inactiveCount++
   }
+
+  const sensitiveRows = buildSensitiveDetailRows(activeRows, existingByEmployeeNumber)
+
+  if (sensitiveRows.length > 0) {
+    const { error: sensitiveError } = await supabase
+      .from('member_sensitive_details')
+      .upsert(sensitiveRows, { onConflict: 'member_id' })
+
+    if (sensitiveError) {
+      throw new Error(`Failed to upsert sensitive details: ${sensitiveError.message}`)
+    }
+  }
+
   return {
     mode: 'apply',
     importBatchId,
@@ -350,7 +387,7 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
     inactiveCount,
     snapshotCount: snapshotRows.length,
     historyRowCount: 0,
-    sensitiveDetailUpdateCount: 0,
+    sensitiveDetailUpdateCount: sensitiveRows.length,
     warningCount: 0,
     errorCount: 0,
     warnings: [],
