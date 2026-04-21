@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import LandingPage from './components/pages/LandingPage.vue'
+import PageContainer from '@/components/layout/PageContainer.vue'
 </script>
 
 <template>
-  <div class="mx-auto my-0 max-w-7xl">
-    <LandingPage />
-  </div>
+  <PageContainer>
+    <h1>Test Container</h1>
+  </PageContainer>
 </template>
