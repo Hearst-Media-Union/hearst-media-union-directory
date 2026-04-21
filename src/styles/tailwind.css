@@ -5,4 +5,57 @@
   --font-sans: 'Barlow', sans-serif;
   --font-condensed: 'Barlow Condensed', sans-serif;
   --font-label: 'Syncopate', sans-serif;
+
+  --color-brand-navy: #0a1237;
+  --color-brand-red: #d33428;
+  --color-brand-red-bright: #fd543f;
+  --color-brand-gray: #e1dcd9;
+
+  --color-accent-orange: #fead50;
+  --color-accent-yellow: #fbc729;
+  --color-accent-pink: #fcc4c0;
+  --color-accent-blue: #206eb6;
+  --color-accent-light-blue: #8bbee3;
+  --color-accent-teal: #3a9e93;
+  --color-accent-mint: #b2e0d6;
+
+  --color-app-bg: #ffffff;
+  --color-app-surface: #ffffff;
+  --color-app-text: #0a1237;
+  --color-app-border: #e1dcd9;
+  --color-app-primary: #d33428;
+  --color-app-primary-hover: #fd543f;
+  --color-app-row-hover: #f7f7f7;
+
+  --spacing-page-mobile-x: 16px;
+  --spacing-page-desktop-x: 24px;
+  --spacing-page-section-y: 24px;
+  --spacing-page-section-y-lg: 32px;
+
+  --text-page-title: 28px;
+  --text-nav: 16px;
+  --text-table: 14px;
+  --text-meta: 13px;
+
+  --breakpoint-md: 48rem; /* 768px */
+  --container-max: 1280px;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    color: var(--color-app-text);
+    background-color: var(--color-app-bg);
+  }
+
+  body {
+    min-height: 100vh;
+    font-family: var(--font-sans);
+    color: var(--color-app-text);
+    background-color: var(--color-app-bg);
+  }
+
+  #app {
+    min-height: 100vh;
+  }
 }
