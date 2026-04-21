@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { loadWorkbook } from '../workbook/loadWorkbook.js'
 
 export type ImportExecutionMode = 'dry_run' | 'apply'
 
@@ -34,7 +35,16 @@ if (!supabaseUrl || !supabaseServiceRoleKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceRoleKey)
 
+function countProcessedRows(workbook: ReturnType<typeof loadWorkbook>): number {
+  return (
+    workbook.rows.active.length + workbook.rows.leavers.length + workbook.rows.promotions.length
+  )
+}
+
 export async function applyImport(input: ApplyImportInput): Promise<ApplyImportSummary> {
+  const workbook = loadWorkbook(input.workbookPath)
+  const processedCount = countProcessedRows(workbook)
+
   const { data, error } = await supabase
     .from('import_batches')
     .insert({
@@ -42,6 +52,7 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
       source_filename: input.sourceFilename,
       uploaded_by: input.uploadedByUserProfileId ?? null,
       status: 'processing',
+      processed_count: processedCount,
     })
     .select('id')
     .single()
@@ -55,7 +66,7 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
   return {
     mode: 'apply',
     importBatchId,
-    processedCount: 0,
+    processedCount,
     createdCount: 0,
     updatedCount: 0,
     inactiveCount: 0,
