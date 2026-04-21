@@ -1,19 +1,7 @@
 <template>
-  <div class="page-container">
+  <div
+    class="mx-auto w-full max-w-[1280px] px-(--spacing-page-mobile-x) md:px-(--spacing-page-desktop-x)"
+  >
     <slot />
   </div>
 </template>
-
-<style scoped>
-.page-container {
-  max-width: var(--container-max);
-  margin: 0 auto;
-  padding: 0 var(--spacing-page-mobile-x);
-}
-
-@media (min-width: 48rem) {
-  .page-container {
-    padding: 0 var(--spacing-page-desktop-x);
-  }
-}
-</style>

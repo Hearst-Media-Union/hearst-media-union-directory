@@ -1,13 +1,5 @@
-<script setup lang="ts"></script>
-
 <template>
-  <div class="public-shell">
+  <div class="min-h-screen">
     <slot />
   </div>
 </template>
-
-<style scoped>
-.public-shell {
-  min-height: 100vh;
-}
-</style>
