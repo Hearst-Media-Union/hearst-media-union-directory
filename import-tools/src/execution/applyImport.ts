@@ -44,6 +44,72 @@ function countProcessedRows(workbook: ReturnType<typeof loadWorkbook>): number {
   )
 }
 
+function buildActiveSnapshots(
+  importBatchId: string,
+  rows: ReturnType<typeof mapActiveRow>[],
+  rawRows: Record<string, unknown>[],
+) {
+  return rows.map((row, index) => ({
+    import_batch_id: importBatchId,
+    employee_number: row.employeeNumber,
+    source_sheet: 'active_members' as const,
+    source_action_name: null,
+    source_row_json: rawRows[index],
+    legal_first_name: row.legalFirstName,
+    legal_last_name: row.legalLastName,
+    work_email: row.workEmail,
+    location: row.location,
+    assignment_name: row.assignmentName,
+    unit_title: row.unitTitle,
+    brand: row.brand,
+    unit_tier: row.unitTier,
+  }))
+}
+
+function buildLeaverSnapshots(
+  importBatchId: string,
+  rows: ReturnType<typeof mapLeaverRow>[],
+  rawRows: Record<string, unknown>[],
+) {
+  return rows.map((row, index) => ({
+    import_batch_id: importBatchId,
+    employee_number: row.employeeNumber,
+    source_sheet: 'recent_leavers' as const,
+    source_action_name: row.sourceActionName,
+    source_row_json: rawRows[index],
+    legal_first_name: row.legalFirstName,
+    legal_last_name: row.legalLastName,
+    work_email: row.workEmail,
+    location: row.location,
+    assignment_name: null,
+    unit_title: row.unitTitle,
+    brand: row.brand,
+    unit_tier: row.unitTier,
+  }))
+}
+
+function buildPromotionSnapshots(
+  importBatchId: string,
+  rows: ReturnType<typeof mapPromotionRow>[],
+  rawRows: Record<string, unknown>[],
+) {
+  return rows.map((row, index) => ({
+    import_batch_id: importBatchId,
+    employee_number: row.employeeNumber,
+    source_sheet: 'promoted_out' as const,
+    source_action_name: null,
+    source_row_json: rawRows[index],
+    legal_first_name: row.legalFirstName,
+    legal_last_name: row.legalLastName,
+    work_email: null,
+    location: row.location,
+    assignment_name: null,
+    unit_title: row.newTitle,
+    brand: row.brand,
+    unit_tier: null,
+  }))
+}
+
 export async function applyImport(input: ApplyImportInput): Promise<ApplyImportSummary> {
   const workbook = loadWorkbook(input.workbookPath)
   const processedCount = countProcessedRows(workbook)
@@ -52,16 +118,6 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
   const activeRows = workbook.rows.active.map(mapActiveRow)
   const leaverRows = workbook.rows.leavers.map(mapLeaverRow)
   const promotionRows = workbook.rows.promotions.map(mapPromotionRow)
-
-  console.log('Apply debug:')
-  console.log({
-    activeRowCount: activeRows.length,
-    leaverRowCount: leaverRows.length,
-    promotionRowCount: promotionRows.length,
-    sampleActiveEmployeeNumbers: activeRows.slice(0, 5).map((row) => row.employeeNumber),
-    sampleLeaverEmployeeNumbers: leaverRows.slice(0, 5).map((row) => row.employeeNumber),
-    samplePromotionEmployeeNumbers: promotionRows.slice(0, 5).map((row) => row.employeeNumber),
-  })
 
   // fetch existing members
   const existingMembers = await getExistingMembers(workbook.rows)
@@ -95,6 +151,26 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
   }
 
   const importBatchId = data?.id ?? null
+
+  if (!importBatchId) {
+    throw new Error('Import batch was created without an id')
+  }
+
+  const snapshotRows = [
+    ...buildActiveSnapshots(importBatchId, activeRows, workbook.rows.active),
+    ...buildLeaverSnapshots(importBatchId, leaverRows, workbook.rows.leavers),
+    ...buildPromotionSnapshots(importBatchId, promotionRows, workbook.rows.promotions),
+  ]
+
+  if (snapshotRows.length > 0) {
+    const { error: snapshotInsertError } = await supabase
+      .from('import_snapshots')
+      .insert(snapshotRows)
+
+    if (snapshotInsertError) {
+      throw new Error(`Failed to create import snapshots: ${snapshotInsertError.message}`)
+    }
+  }
 
   // create members
   if (membersToCreate.length > 0) {
@@ -206,19 +282,6 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
 
   let inactiveCount = 0
 
-  console.log('Apply debug match check:')
-  console.log({
-    sampleExistingKeys: Array.from(existingByEmployeeNumber.keys()).slice(0, 10),
-    matchingLeavers: leaverRows
-      .filter((row) => row.employeeNumber && existingByEmployeeNumber.has(row.employeeNumber))
-      .slice(0, 5)
-      .map((row) => row.employeeNumber),
-    matchingPromotions: promotionRows
-      .filter((row) => row.employeeNumber && existingByEmployeeNumber.has(row.employeeNumber))
-      .slice(0, 5)
-      .map((row) => row.employeeNumber),
-  })
-
   // process leavers
   for (const row of leaverRows) {
     if (!row.employeeNumber) {
@@ -285,7 +348,7 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
     createdCount: membersToCreate.length,
     updatedCount: membersToUpdate.length,
     inactiveCount,
-    snapshotCount: 0,
+    snapshotCount: snapshotRows.length,
     historyRowCount: 0,
     sensitiveDetailUpdateCount: 0,
     warningCount: 0,
