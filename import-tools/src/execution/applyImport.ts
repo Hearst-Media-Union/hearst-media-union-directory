@@ -44,6 +44,96 @@ function countProcessedRows(workbook: ReturnType<typeof loadWorkbook>): number {
   )
 }
 
+function buildActiveSnapshots(
+  importBatchId: string,
+  rows: ReturnType<typeof mapActiveRow>[],
+  rawRows: Record<string, unknown>[],
+) {
+  return rows.map((row, index) => ({
+    import_batch_id: importBatchId,
+    employee_number: row.employeeNumber,
+    source_sheet: 'active_members' as const,
+    source_action_name: null,
+    source_row_json: rawRows[index],
+    legal_first_name: row.legalFirstName,
+    legal_last_name: row.legalLastName,
+    work_email: row.workEmail,
+    location: row.location,
+    assignment_name: row.assignmentName,
+    unit_title: row.unitTitle,
+    brand: row.brand,
+    unit_tier: row.unitTier,
+  }))
+}
+
+function buildLeaverSnapshots(
+  importBatchId: string,
+  rows: ReturnType<typeof mapLeaverRow>[],
+  rawRows: Record<string, unknown>[],
+) {
+  return rows.map((row, index) => ({
+    import_batch_id: importBatchId,
+    employee_number: row.employeeNumber,
+    source_sheet: 'recent_leavers' as const,
+    source_action_name: row.sourceActionName,
+    source_row_json: rawRows[index],
+    legal_first_name: row.legalFirstName,
+    legal_last_name: row.legalLastName,
+    work_email: row.workEmail,
+    location: row.location,
+    assignment_name: null,
+    unit_title: row.unitTitle,
+    brand: row.brand,
+    unit_tier: row.unitTier,
+  }))
+}
+
+function buildPromotionSnapshots(
+  importBatchId: string,
+  rows: ReturnType<typeof mapPromotionRow>[],
+  rawRows: Record<string, unknown>[],
+) {
+  return rows.map((row, index) => ({
+    import_batch_id: importBatchId,
+    employee_number: row.employeeNumber,
+    source_sheet: 'promoted_out' as const,
+    source_action_name: null,
+    source_row_json: rawRows[index],
+    legal_first_name: row.legalFirstName,
+    legal_last_name: row.legalLastName,
+    work_email: null,
+    location: row.location,
+    assignment_name: null,
+    unit_title: row.newTitle,
+    brand: row.brand,
+    unit_tier: null,
+  }))
+}
+
+function buildSensitiveDetailRows(
+  activeRows: ReturnType<typeof mapActiveRow>[],
+  existingByEmployeeNumber: Map<string, { memberId: string }>,
+) {
+  return activeRows
+    .filter((row) => row.employeeNumber)
+    .map((row) => {
+      const existing = existingByEmployeeNumber.get(row.employeeNumber!)
+
+      if (!existing) {
+        return null
+      }
+
+      return {
+        member_id: existing.memberId,
+        annual_salary_or_hourly_rate: row.annualSalaryOrHourlyRate,
+        date_of_birth: row.dateOfBirth,
+        gender: row.gender,
+        ethnicity: row.ethnicity,
+      }
+    })
+    .filter((row): row is NonNullable<typeof row> => row !== null)
+}
+
 export async function applyImport(input: ApplyImportInput): Promise<ApplyImportSummary> {
   const workbook = loadWorkbook(input.workbookPath)
   const processedCount = countProcessedRows(workbook)
@@ -52,16 +142,6 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
   const activeRows = workbook.rows.active.map(mapActiveRow)
   const leaverRows = workbook.rows.leavers.map(mapLeaverRow)
   const promotionRows = workbook.rows.promotions.map(mapPromotionRow)
-
-  console.log('Apply debug:')
-  console.log({
-    activeRowCount: activeRows.length,
-    leaverRowCount: leaverRows.length,
-    promotionRowCount: promotionRows.length,
-    sampleActiveEmployeeNumbers: activeRows.slice(0, 5).map((row) => row.employeeNumber),
-    sampleLeaverEmployeeNumbers: leaverRows.slice(0, 5).map((row) => row.employeeNumber),
-    samplePromotionEmployeeNumbers: promotionRows.slice(0, 5).map((row) => row.employeeNumber),
-  })
 
   // fetch existing members
   const existingMembers = await getExistingMembers(workbook.rows)
@@ -95,6 +175,29 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
   }
 
   const importBatchId = data?.id ?? null
+
+  if (!importBatchId) {
+    throw new Error('Import batch was created without an id')
+  }
+
+  let inactiveCount = 0
+  let historyRowCount = 0
+
+  const snapshotRows = [
+    ...buildActiveSnapshots(importBatchId, activeRows, workbook.rows.active),
+    ...buildLeaverSnapshots(importBatchId, leaverRows, workbook.rows.leavers),
+    ...buildPromotionSnapshots(importBatchId, promotionRows, workbook.rows.promotions),
+  ]
+
+  if (snapshotRows.length > 0) {
+    const { error: snapshotInsertError } = await supabase
+      .from('import_snapshots')
+      .insert(snapshotRows)
+
+    if (snapshotInsertError) {
+      throw new Error(`Failed to create import snapshots: ${snapshotInsertError.message}`)
+    }
+  }
 
   // create members
   if (membersToCreate.length > 0) {
@@ -177,6 +280,67 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
       continue
     }
 
+    // ---- HISTORY DETECTION ----
+    const historyRows: Array<{
+      member_id: string
+      import_batch_id: string
+      change_source: 'import'
+      field_name: string
+      old_value: string | null
+      new_value: string | null
+    }> = []
+
+    // assignment_name
+    if ((existingMember.assignmentName ?? null) !== (row.assignmentName ?? null)) {
+      historyRows.push({
+        member_id: existingMember.memberId,
+        import_batch_id: importBatchId,
+        change_source: 'import',
+        field_name: 'assignment_name',
+        old_value: existingMember.assignmentName ?? null,
+        new_value: row.assignmentName ?? null,
+      })
+    }
+
+    // unit_title
+    if ((existingMember.unitTitle ?? null) !== (row.unitTitle ?? null)) {
+      historyRows.push({
+        member_id: existingMember.memberId,
+        import_batch_id: importBatchId,
+        change_source: 'import',
+        field_name: 'unit_title',
+        old_value: existingMember.unitTitle ?? null,
+        new_value: row.unitTitle ?? null,
+      })
+    }
+
+    // is_active (reactivation)
+    if (existingMember.isActive === false) {
+      historyRows.push({
+        member_id: existingMember.memberId,
+        import_batch_id: importBatchId,
+        change_source: 'import',
+        field_name: 'is_active',
+        old_value: 'false',
+        new_value: 'true',
+      })
+    }
+
+    // insert history rows if any
+    if (historyRows.length > 0) {
+      const { error: historyError } = await supabase
+        .from('member_change_history')
+        .insert(historyRows)
+
+      if (historyError) {
+        throw new Error(
+          `Failed to insert history for member ${existingMember.memberId}: ${historyError.message}`,
+        )
+      }
+
+      historyRowCount += historyRows.length
+    }
+
     const { error: updateMemberError } = await supabase
       .from('members')
       .update({
@@ -202,22 +366,22 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
         `Failed to update member ${existingMember.memberId}: ${updateMemberError.message}`,
       )
     }
+
+    existingByEmployeeNumber.set(row.employeeNumber, {
+      ...existingMember,
+      isActive: true,
+      legalFirstName: row.legalFirstName,
+      legalLastName: row.legalLastName,
+      preferredName: row.preferredName,
+      workEmail: row.workEmail,
+      primaryPhone: row.primaryPhone,
+      location: row.location,
+      assignmentName: row.assignmentName,
+      unitTitle: row.unitTitle,
+      brand: row.brand,
+      unitTier: row.unitTier,
+    })
   }
-
-  let inactiveCount = 0
-
-  console.log('Apply debug match check:')
-  console.log({
-    sampleExistingKeys: Array.from(existingByEmployeeNumber.keys()).slice(0, 10),
-    matchingLeavers: leaverRows
-      .filter((row) => row.employeeNumber && existingByEmployeeNumber.has(row.employeeNumber))
-      .slice(0, 5)
-      .map((row) => row.employeeNumber),
-    matchingPromotions: promotionRows
-      .filter((row) => row.employeeNumber && existingByEmployeeNumber.has(row.employeeNumber))
-      .slice(0, 5)
-      .map((row) => row.employeeNumber),
-  })
 
   // process leavers
   for (const row of leaverRows) {
@@ -231,13 +395,34 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
       continue
     }
 
+    const inactiveReason = row.sourceActionName
+      ? row.sourceActionName.trim().toLowerCase().replace(/\s+/g, '_')
+      : 'left_company'
+
+    if (existingMember.isActive === true) {
+      const { error: historyError } = await supabase.from('member_change_history').insert({
+        member_id: existingMember.memberId,
+        import_batch_id: importBatchId,
+        change_source: 'import',
+        field_name: 'is_active',
+        old_value: 'true',
+        new_value: 'false',
+      })
+
+      if (historyError) {
+        throw new Error(
+          `Failed to insert history for member ${existingMember.memberId}: ${historyError.message}`,
+        )
+      }
+
+      historyRowCount++
+    }
+
     const { error } = await supabase
       .from('members')
       .update({
         is_active: false,
-        inactive_reason: row.sourceActionName
-          ? row.sourceActionName.trim().toLowerCase().replace(/\s+/g, '_')
-          : 'left_company',
+        inactive_reason: inactiveReason,
         inactive_at: row.inactiveAt,
         last_seen_import_batch_id: importBatchId,
       })
@@ -246,6 +431,11 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
     if (error) {
       throw new Error(`Failed to inactivate member ${existingMember.memberId}: ${error.message}`)
     }
+
+    existingByEmployeeNumber.set(row.employeeNumber, {
+      ...existingMember,
+      isActive: false,
+    })
 
     inactiveCount++
   }
@@ -262,6 +452,25 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
       continue
     }
 
+    if (existingMember.isActive === true) {
+      const { error: historyError } = await supabase.from('member_change_history').insert({
+        member_id: existingMember.memberId,
+        import_batch_id: importBatchId,
+        change_source: 'import',
+        field_name: 'is_active',
+        old_value: 'true',
+        new_value: 'false',
+      })
+
+      if (historyError) {
+        throw new Error(
+          `Failed to insert history for member ${existingMember.memberId}: ${historyError.message}`,
+        )
+      }
+
+      historyRowCount++
+    }
+
     const { error } = await supabase
       .from('members')
       .update({
@@ -276,8 +485,108 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
       throw new Error(`Failed to inactivate member ${existingMember.memberId}: ${error.message}`)
     }
 
+    existingByEmployeeNumber.set(row.employeeNumber, {
+      ...existingMember,
+      isActive: false,
+    })
+
     inactiveCount++
   }
+
+  const sensitiveRows = buildSensitiveDetailRows(activeRows, existingByEmployeeNumber)
+
+  const salaryHistoryRows: Array<{
+    member_id: string
+    import_batch_id: string
+    change_source: 'import'
+    field_name: string
+    old_value: string | null
+    new_value: string | null
+  }> = []
+
+  for (const row of activeRows) {
+    if (!row.employeeNumber) {
+      continue
+    }
+
+    const existingMember = existingByEmployeeNumber.get(row.employeeNumber)
+
+    if (!existingMember) {
+      continue
+    }
+
+    const { data: existingSensitiveRow, error: existingSensitiveError } = await supabase
+      .from('member_sensitive_details')
+      .select('annual_salary_or_hourly_rate')
+      .eq('member_id', existingMember.memberId)
+      .maybeSingle()
+
+    if (existingSensitiveError) {
+      throw new Error(
+        `Failed to load existing sensitive details for ${existingMember.memberId}: ${existingSensitiveError.message}`,
+      )
+    }
+
+    const oldSalary =
+      existingSensitiveRow?.annual_salary_or_hourly_rate != null
+        ? String(existingSensitiveRow.annual_salary_or_hourly_rate)
+        : null
+
+    const newSalary =
+      row.annualSalaryOrHourlyRate != null ? String(row.annualSalaryOrHourlyRate) : null
+
+    if (oldSalary === newSalary) {
+      continue
+    }
+
+    salaryHistoryRows.push({
+      member_id: existingMember.memberId,
+      import_batch_id: importBatchId,
+      change_source: 'import',
+      field_name: 'salary',
+      old_value: oldSalary,
+      new_value: newSalary,
+    })
+  }
+
+  if (salaryHistoryRows.length > 0) {
+    const { error: salaryHistoryError } = await supabase
+      .from('member_change_history')
+      .insert(salaryHistoryRows)
+
+    if (salaryHistoryError) {
+      throw new Error(`Failed to insert salary history: ${salaryHistoryError.message}`)
+    }
+
+    historyRowCount += salaryHistoryRows.length
+  }
+
+  if (sensitiveRows.length > 0) {
+    const { error: sensitiveError } = await supabase
+      .from('member_sensitive_details')
+      .upsert(sensitiveRows, { onConflict: 'member_id' })
+
+    if (sensitiveError) {
+      throw new Error(`Failed to upsert sensitive details: ${sensitiveError.message}`)
+    }
+  }
+
+  const { error: finalizeBatchError } = await supabase
+    .from('import_batches')
+    .update({
+      status: 'completed',
+      created_count: membersToCreate.length,
+      updated_count: membersToUpdate.length,
+      inactive_count: inactiveCount,
+    })
+    .eq('id', importBatchId)
+
+  if (finalizeBatchError) {
+    throw new Error(
+      `Failed to finalize import batch ${importBatchId}: ${finalizeBatchError.message}`,
+    )
+  }
+
   return {
     mode: 'apply',
     importBatchId,
@@ -285,9 +594,9 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
     createdCount: membersToCreate.length,
     updatedCount: membersToUpdate.length,
     inactiveCount,
-    snapshotCount: 0,
-    historyRowCount: 0,
-    sensitiveDetailUpdateCount: 0,
+    snapshotCount: snapshotRows.length,
+    historyRowCount,
+    sensitiveDetailUpdateCount: sensitiveRows.length,
     warningCount: 0,
     errorCount: 0,
     warnings: [],
