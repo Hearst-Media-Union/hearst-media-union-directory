@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import PageContainer from '@/components/layout/PageContainer.vue'
+import PublicShell from '@/components/layout/PublicShell.vue'
 </script>
 
 <template>
-  <PageContainer>
-    <h1>Test Container</h1>
-  </PageContainer>
+  <PublicShell>
+    <h1>Public Page</h1>
+  </PublicShell>
 </template>
