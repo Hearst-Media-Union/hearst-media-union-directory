@@ -1,14 +1,19 @@
 <template>
-  <main class="flex flex-col items-center h-screen mt-30">
+  <main
+    class="flex min-h-screen flex-col items-center px-(--spacing-page-mobile-x) pt-24 text-center md:px-(--spacing-page-desktop-x)"
+  >
     <img src="/images/logo.png" class="mb-2" width="180" height="180" alt="logo" />
-    <h1 class="font-condensed text-6xl/[1.1] tracking-wide uppercase font-bold mb-4">
+
+    <h1 class="mb-4 font-condensed text-6xl/[1.1] font-bold uppercase tracking-wide">
       Hearst Media Union
     </h1>
-    <p class="font-sans text-base/normal opacity-80 text-center mb-8">
+
+    <p class="mb-8 max-w-xl text-base/normal opacity-80">
       A directory of active members, committees, and union resources.
     </p>
+
     <div
-      class="font-label uppercase flex flex-col justify-center h-12 px-6 rounded-md text-base font-semibold tracking-wide bg-(--dark-red) text-white hover:bg-(--bright-red) hover:cursor-pointer"
+      class="font-label flex h-12 items-center justify-center rounded-md bg-(--color-app-primary) px-6 text-base font-semibold uppercase tracking-wide text-white hover:cursor-pointer hover:bg-(--color-app-primary-hover)"
     >
       Login
     </div>
