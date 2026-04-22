@@ -3,14 +3,13 @@
     <TopNav />
 
     <PageContainer>
-      <div class="py-6">
-        <h1 class="text-xl font-semibold">Page Content</h1>
-      </div>
+      <RouterView />
     </PageContainer>
   </div>
 </template>
 
 <script setup lang="ts">
+import { RouterView } from 'vue-router'
 import TopNav from '@/components/layout/TopNav.vue'
 import PageContainer from '@/components/layout/PageContainer.vue'
 </script>
