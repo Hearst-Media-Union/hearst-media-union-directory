@@ -2,21 +2,24 @@ name: Supabase Keep Alive
 
 on:
   schedule:
-    # Runs twice per week (Monday and Thursday at 09:00 UTC)
-    - cron: '0 9 * * 1,4'
+    # Monday and Thursday at 14:00 UTC
+    - cron: '0 14 * * 1,4'
   workflow_dispatch:
 
 jobs:
-  keepalive:
+  ping:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Ping Supabase
-        run: |
-          curl -s -o /dev/null -w "%{http_code}" \
-            "$SUPABASE_URL/rest/v1/" \
-            -H "apikey: $SUPABASE_ANON_KEY" \
-            -H "Authorization: Bearer $SUPABASE_ANON_KEY"
+      - name: Ping Supabase keepalive RPC
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          curl --fail --silent --show-error \
+            --request POST \
+            "${SUPABASE_URL}/rest/v1/rpc/keepalive_ping" \
+            -H "apikey: ${SUPABASE_PUBLISHABLE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_PUBLISHABLE_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{}'
