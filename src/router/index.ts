@@ -58,48 +58,90 @@ const router = createRouter({
       path: '/',
       name: 'landing',
       component: LandingPage,
+      meta: {
+        requiresAuth: false,
+      },
     },
     {
       path: '/directory',
       name: 'directory',
       component: DirectoryPage,
+      meta: {
+        requiresAuth: true,
+      },
     },
     {
       path: '/leadership',
       name: 'leadership',
       component: LeadershipPage,
+      meta: {
+        requiresAuth: true,
+      },
     },
     {
       path: '/committees',
       name: 'committees',
       component: CommitteesPage,
+      meta: {
+        requiresAuth: true,
+      },
     },
     {
       path: '/resources',
       name: 'resources',
       component: ResourcesPage,
+      meta: {
+        requiresAuth: true,
+      },
     },
     {
       path: '/new-members',
       name: 'new-members',
       component: NewMembersPage,
+      meta: {
+        requiresAuth: false,
+      },
     },
     {
       path: '/help',
       name: 'help',
       component: HelpPage,
+      meta: {
+        requiresAuth: false,
+      },
     },
     {
       path: '/contact',
       name: 'contact',
       component: ContactPage,
+      meta: {
+        requiresAuth: false,
+      },
     },
     {
       path: '/admin',
       name: 'admin',
       component: AdminPage,
+      meta: {
+        requiresAuth: true,
+      },
     },
   ],
+})
+
+router.beforeEach((to) => {
+  const isAuthenticated = false
+
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    return {
+      path: '/',
+      query: {
+        redirect: to.fullPath,
+      },
+    }
+  }
+
+  return true
 })
 
 export default router
