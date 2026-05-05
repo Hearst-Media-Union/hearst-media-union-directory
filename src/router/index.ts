@@ -124,6 +124,7 @@ const router = createRouter({
       component: AdminPage,
       meta: {
         requiresAuth: true,
+        requiresAdmin: true,
       },
     },
   ],
@@ -131,8 +132,18 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   const isAuthenticated = false
+  const isAdmin = false
 
   if (to.meta.requiresAuth && !isAuthenticated) {
+    return {
+      path: '/',
+      query: {
+        redirect: to.fullPath,
+      },
+    }
+  }
+
+  if (to.meta.requiresAdmin && !isAdmin) {
     return {
       path: '/',
       query: {
