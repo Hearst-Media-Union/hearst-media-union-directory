@@ -34,11 +34,13 @@
     </PageContainer>
   </div>
 
-  <BaseDrawer v-if="isOpen">
+  <BaseDrawer :is-open="isOpen" labelled-by="mobile-menu-title" @close="closeDrawer">
     <template #header>
       <div class="flex items-center justify-between">
-        <h2 class="text-xl font-semibold text-(--color-app-text)">Menu</h2>
-        <button class="text-sm text-(--color-brand-red)/60" @click="isOpen = false">Close</button>
+        <h2 id="mobile-menu-title" class="text-xl font-semibold text-(--color-app-text)">Menu</h2>
+        <button class="text-sm text-(--color-brand-red)/60" type="button" @click="closeDrawer">
+          Close
+        </button>
       </div>
     </template>
 
@@ -57,4 +59,8 @@ import PageContainer from '@/components/layout/PageContainer.vue'
 import BaseDrawer from '@/components/ui/BaseDrawer.vue'
 
 const isOpen = ref(false)
+
+function closeDrawer() {
+  isOpen.value = false
+}
 </script>
