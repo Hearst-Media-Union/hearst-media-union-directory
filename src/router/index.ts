@@ -129,4 +129,19 @@ const router = createRouter({
   ],
 })
 
+router.beforeEach((to) => {
+  const isAuthenticated = false
+
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    return {
+      path: '/',
+      query: {
+        redirect: to.fullPath,
+      },
+    }
+  }
+
+  return true
+})
+
 export default router
