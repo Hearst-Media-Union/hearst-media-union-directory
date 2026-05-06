@@ -20,11 +20,9 @@
       A directory of active members, committees, and union resources.
     </p>
 
-    <button
-      type="button"
-      class="font-label flex min-h-12 items-center justify-center rounded-md bg-(--color-app-primary) px-6 text-base font-semibold uppercase tracking-wide text-white hover:cursor-pointer hover:bg-(--color-app-primary-hover)"
-    >
-      Login
-    </button>
+    <BaseButton font="label">LOGIN</BaseButton>
   </main>
 </template>
+<script setup lang="ts">
+import BaseButton from '@/components/ui/BaseButton.vue'
+</script>

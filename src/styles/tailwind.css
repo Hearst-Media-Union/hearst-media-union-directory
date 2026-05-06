@@ -26,6 +26,10 @@
   --color-app-primary: #d33428;
   --color-app-primary-hover: #fd543f;
   --color-app-row-hover: #f7f7f7;
+  --color-app-hover-surface: #f7f7f7;
+  --color-app-muted: #f7f7f7;
+
+  --shadow-modal: 0 12px 40px rgba(0, 0, 0, 0.22);
 
   --spacing-page-mobile-x: 16px;
   --spacing-page-desktop-x: 24px;
