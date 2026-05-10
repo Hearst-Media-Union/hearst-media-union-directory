@@ -74,7 +74,7 @@ withDefaults(
 )
 
 const baseFieldClasses =
-  'rounded-md border border-(--color-app-border) bg-(--color-app-surface) px-3 text-sm text-(--color-app-text) outline-none transition focus:border-(--color-brand-navy) focus:ring-(--color-brand-navy)/20)'
+  'rounded-md border border-(--color-app-border) bg-(--color-app-surface) px-3 text-sm text-(--color-app-text) outline-none transition focus:border-(--color-brand-navy) focus:ring-(--color-brand-navy)/20'
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
