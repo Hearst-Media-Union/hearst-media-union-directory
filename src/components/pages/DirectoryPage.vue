@@ -9,7 +9,9 @@
 
       <DirectoryToolbar v-model:search-term="searchTerm" />
 
-      <p class="font-sans text-meta text-(--color-brand-navy)">Showing {{ memberCount }} members</p>
+      <p class="font-sans text-meta text-(--color-brand-navy)">
+        Showing {{ filteredMembers.length }} members
+      </p>
 
       <div class="hidden bg-(--color-app-surface) md:block">
         <div
@@ -42,9 +44,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
 import DirectoryToolbar from '@/components/directory/DirectoryToolbar.vue'
+import {
+  useDirectoryFilters,
+  type DirectoryFilterableMember,
+} from '@/composables/useDirectoryFilters'
 
-const searchTerm = ref('')
-const memberCount = 0
+const members = computed<DirectoryFilterableMember[]>(() => [])
+
+const { searchTerm, filteredMembers } = useDirectoryFilters(members)
 </script>
