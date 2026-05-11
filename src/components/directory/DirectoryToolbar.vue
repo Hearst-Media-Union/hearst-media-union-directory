@@ -1,19 +1,6 @@
 <template>
   <div class="space-y-3">
-    <div class="relative">
-      <img
-        src="/images/icons/search-icon-navy.png"
-        alt=""
-        class="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2"
-      />
-
-      <BaseInput
-        id="directory-search"
-        v-model="searchValue"
-        class="[&_input]:min-h-12 [&_input]:w-full [&_input]:rounded-lg [&_input]:pl-10 [&_input]:text-nav"
-        placeholder="Search members by name, email, phone, brand..."
-      />
-    </div>
+    <DirectorySearchInput v-model="searchValue" />
 
     <div class="flex flex-wrap gap-2">
       <button
@@ -32,7 +19,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import BaseInput from '@/components/ui/BaseInput.vue'
+import DirectorySearchInput from '@/components/directory/DirectorySearchInput.vue'
 
 const searchValue = ref('')
 
