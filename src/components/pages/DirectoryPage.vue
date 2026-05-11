@@ -7,7 +7,7 @@
         </h1>
       </header>
 
-      <DirectoryToolbar />
+      <DirectoryToolbar v-model:search-term="searchTerm" />
 
       <p class="font-sans text-meta text-(--color-brand-navy)">Showing {{ memberCount }} members</p>
 
@@ -42,7 +42,9 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import DirectoryToolbar from '@/components/directory/DirectoryToolbar.vue'
 
+const searchTerm = ref('')
 const memberCount = 0
 </script>

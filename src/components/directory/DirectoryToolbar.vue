@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-3">
-    <DirectorySearchInput v-model="searchValue" />
+    <DirectorySearchInput v-model="model" />
 
     <div class="flex flex-wrap gap-2">
       <button
@@ -18,10 +18,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
 import DirectorySearchInput from '@/components/directory/DirectorySearchInput.vue'
 
-const searchValue = ref('')
+const props = defineProps<{
+  searchTerm: string
+}>()
+
+const emit = defineEmits<{
+  'update:searchTerm': [value: string]
+}>()
+
+const model = computed({
+  get: () => props.searchTerm,
+  set: (value) => emit('update:searchTerm', value),
+})
 
 const filters = ['Department', 'Location', 'Committee', 'Role']
 </script>
