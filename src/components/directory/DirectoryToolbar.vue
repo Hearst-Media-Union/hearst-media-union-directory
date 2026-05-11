@@ -2,7 +2,7 @@
   <div class="space-y-3">
     <DirectorySearchInput v-model="model" />
 
-    <div class="flex flex-wrap gap-2">
+    <div class="flex flex-wrap items-center gap-2">
       <button
         v-for="filter in filters"
         :key="filter"
@@ -12,6 +12,14 @@
         <span>{{ filter }}</span>
 
         <img src="/images/icons/caret-navy.png" alt="" class="h-4 w-4" />
+      </button>
+      <button
+        v-if="hasActiveFilters"
+        type="button"
+        class="min-h-10 px-2 font-sans text-meta font-medium text-(--color-brand-navy) underline underline-offset-2"
+        @click="emit('reset')"
+      >
+        Reset
       </button>
     </div>
   </div>
@@ -23,10 +31,12 @@ import DirectorySearchInput from '@/components/directory/DirectorySearchInput.vu
 
 const props = defineProps<{
   searchTerm: string
+  hasActiveFilters?: boolean
 }>()
 
 const emit = defineEmits<{
   'update:searchTerm': [value: string]
+  reset: []
 }>()
 
 const model = computed({
