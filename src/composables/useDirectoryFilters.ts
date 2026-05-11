@@ -51,6 +51,16 @@ export function useDirectoryFilters(members: Ref<DirectoryFilterableMember[]>) {
     })
   })
 
+  const hasActiveFilters = computed(() => {
+    return (
+      searchTerm.value.length > 0 ||
+      departmentFilter.value.length > 0 ||
+      locationFilter.value.length > 0 ||
+      committeeFilter.value.length > 0 ||
+      roleFilter.value.length > 0
+    )
+  })
+
   function resetFilters() {
     searchTerm.value = ''
     departmentFilter.value = ''
@@ -66,6 +76,7 @@ export function useDirectoryFilters(members: Ref<DirectoryFilterableMember[]>) {
     committeeFilter,
     roleFilter,
     filteredMembers,
+    hasActiveFilters,
     resetFilters,
   }
 }
