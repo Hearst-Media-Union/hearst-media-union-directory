@@ -15,10 +15,10 @@ export type DirectoryFilterableMember = {
 
 export function useDirectoryFilters(members: Ref<DirectoryFilterableMember[]>) {
   const searchTerm = ref('')
-  const unitFilter = ref<DirectoryFilterValue>('')
+  const departmentFilter = ref<DirectoryFilterValue>('')
   const locationFilter = ref<DirectoryFilterValue>('')
-  const brandFilter = ref<DirectoryFilterValue>('')
   const committeeFilter = ref<DirectoryFilterValue>('')
+  const roleFilter = ref<DirectoryFilterValue>('')
 
   const filteredMembers = computed(() => {
     const normalizedSearchTerm = searchTerm.value.trim().toLowerCase()
@@ -39,30 +39,32 @@ export function useDirectoryFilters(members: Ref<DirectoryFilterableMember[]>) {
           .filter((value): value is string => Boolean(value))
           .some((value) => value.toLowerCase().includes(normalizedSearchTerm))
 
-      const matchesUnit = !unitFilter.value || member.unit === unitFilter.value
+      const matchesDepartment = !departmentFilter.value || member.unit === departmentFilter.value
       const matchesLocation = !locationFilter.value || member.area === locationFilter.value
-      const matchesBrand = !brandFilter.value || member.brand === brandFilter.value
       const matchesCommittee =
         !committeeFilter.value || member.committees.includes(committeeFilter.value)
+      const matchesRole = !roleFilter.value || member.title === roleFilter.value
 
-      return matchesSearch && matchesUnit && matchesLocation && matchesBrand && matchesCommittee
+      return (
+        matchesSearch && matchesDepartment && matchesLocation && matchesCommittee && matchesRole
+      )
     })
   })
 
   function resetFilters() {
     searchTerm.value = ''
-    unitFilter.value = ''
+    departmentFilter.value = ''
     locationFilter.value = ''
-    brandFilter.value = ''
     committeeFilter.value = ''
+    roleFilter.value = ''
   }
 
   return {
     searchTerm,
-    unitFilter,
+    departmentFilter,
     locationFilter,
-    brandFilter,
     committeeFilter,
+    roleFilter,
     filteredMembers,
     resetFilters,
   }
