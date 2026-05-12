@@ -17,18 +17,7 @@
         Showing {{ filteredMembers.length }} members
       </p>
 
-      <div class="hidden bg-(--color-app-surface) md:block">
-        <div
-          class="grid min-h-14 grid-cols-[1.4fr_1fr_1.4fr_1fr_1fr_1.2fr] items-center border-b border-(--color-app-border) px-4 font-condensed text-table font-semibold text-(--color-brand-navy)"
-        >
-          <span>Name</span>
-          <span>Brand</span>
-          <span>Job Title</span>
-          <span>Unit Title</span>
-          <span>Area/Office</span>
-          <span>Committees</span>
-        </div>
-      </div>
+      <DirectoryDesktopTable :members="filteredMembers" />
 
       <div class="space-y-3 md:hidden">
         <div
@@ -50,12 +39,54 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import DirectoryToolbar from '@/components/directory/DirectoryToolbar.vue'
+import DirectoryDesktopTable from '@/components/directory/DirectoryDesktopTable.vue'
 import {
   useDirectoryFilters,
   type DirectoryFilterableMember,
 } from '@/composables/useDirectoryFilters'
 
-const members = computed<DirectoryFilterableMember[]>(() => [])
+const members = computed<DirectoryFilterableMember[]>(() => [
+  {
+    name: 'Andrew Berry',
+    email: 'andrew.berry@example.com',
+    phone: '618-555-0100',
+    brand: 'Car & Driver',
+    title: 'Online Production Assistant',
+    unit: 'Assistant',
+    area: 'Ann Arbor, MI',
+    committees: ['A', 'LMC', 'SOC', 'BS'],
+  },
+  {
+    name: 'Anna Logan',
+    email: 'anna.logan@example.com',
+    phone: '618-555-0101',
+    brand: 'Country Living',
+    title: 'Senior Homes & Style Editor',
+    unit: 'Senior Editor',
+    area: 'Birmingham, AL',
+    committees: ['LMC', 'SOC', 'NMC', 'COMM'],
+  },
+  {
+    name: 'Cinzia Reale-Castello',
+    email: 'cinzia.reale-castello@example.com',
+    phone: '555-0102',
+    brand: 'Good Housekeeping Institute',
+    title: 'Copy & Research Chief, Discoveries and Product Testing',
+    unit: 'Senior Photo Editor',
+    area: 'Tower - Floor 24',
+    committees: ['EQ', 'CHA'],
+  },
+  {
+    name: 'Ashleigh Macdonald-Bennett',
+    email: 'ashleigh.macdonald-bennett@example.com',
+    phone: '618-555-0103',
+    brand: 'Town & Country',
+    title: 'Deputy Managing Editor',
+    unit: 'Deputy Editor',
+    area: 'Easton, PA',
+    committees: [],
+  },
+])
 
 const { searchTerm, filteredMembers, hasActiveFilters, resetFilters } = useDirectoryFilters(members)
 </script>
