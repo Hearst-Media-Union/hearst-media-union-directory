@@ -1,21 +1,8 @@
 <template>
   <div class="space-y-3">
-    <div class="relative">
-      <img
-        src="/images/icons/search-icon-navy.png"
-        alt=""
-        class="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2"
-      />
+    <DirectorySearchInput v-model="model" />
 
-      <BaseInput
-        id="directory-search"
-        v-model="searchValue"
-        class="[&_input]:min-h-12 [&_input]:w-full [&_input]:rounded-lg [&_input]:pl-10 [&_input]:text-nav"
-        placeholder="Search members by name, email, phone, brand..."
-      />
-    </div>
-
-    <div class="flex flex-wrap gap-2">
+    <div class="flex flex-wrap items-center gap-2">
       <button
         v-for="filter in filters"
         :key="filter"
@@ -26,15 +13,36 @@
 
         <img src="/images/icons/caret-navy.png" alt="" class="h-4 w-4" />
       </button>
+      <button
+        v-if="hasActiveFilters"
+        type="button"
+        class="min-h-10 px-2 font-sans text-meta font-medium text-(--color-brand-navy) underline underline-offset-2"
+        @click="emit('reset')"
+      >
+        Reset
+      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import BaseInput from '@/components/ui/BaseInput.vue'
+import { computed } from 'vue'
+import DirectorySearchInput from '@/components/directory/DirectorySearchInput.vue'
 
-const searchValue = ref('')
+const props = defineProps<{
+  searchTerm: string
+  hasActiveFilters?: boolean
+}>()
+
+const emit = defineEmits<{
+  'update:searchTerm': [value: string]
+  reset: []
+}>()
+
+const model = computed({
+  get: () => props.searchTerm,
+  set: (value) => emit('update:searchTerm', value),
+})
 
 const filters = ['Department', 'Location', 'Committee', 'Role']
 </script>

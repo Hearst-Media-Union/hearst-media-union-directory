@@ -7,9 +7,15 @@
         </h1>
       </header>
 
-      <DirectoryToolbar />
+      <DirectoryToolbar
+        v-model:search-term="searchTerm"
+        :has-active-filters="hasActiveFilters"
+        @reset="resetFilters"
+      />
 
-      <p class="font-sans text-meta text-(--color-brand-navy)">Showing {{ memberCount }} members</p>
+      <p class="font-sans text-meta text-(--color-brand-navy)">
+        Showing {{ filteredMembers.length }} members
+      </p>
 
       <div class="hidden bg-(--color-app-surface) md:block">
         <div
@@ -42,7 +48,14 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import DirectoryToolbar from '@/components/directory/DirectoryToolbar.vue'
+import {
+  useDirectoryFilters,
+  type DirectoryFilterableMember,
+} from '@/composables/useDirectoryFilters'
 
-const memberCount = 0
+const members = computed<DirectoryFilterableMember[]>(() => [])
+
+const { searchTerm, filteredMembers, hasActiveFilters, resetFilters } = useDirectoryFilters(members)
 </script>
