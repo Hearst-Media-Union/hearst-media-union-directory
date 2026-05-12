@@ -7,7 +7,11 @@
         </h1>
       </header>
 
-      <DirectoryToolbar v-model:search-term="searchTerm" />
+      <DirectoryToolbar
+        v-model:search-term="searchTerm"
+        :has-active-filters="hasActiveFilters"
+        @reset="resetFilters"
+      />
 
       <p class="font-sans text-meta text-(--color-brand-navy)">
         Showing {{ filteredMembers.length }} members
@@ -53,5 +57,5 @@ import {
 
 const members = computed<DirectoryFilterableMember[]>(() => [])
 
-const { searchTerm, filteredMembers } = useDirectoryFilters(members)
+const { searchTerm, filteredMembers, hasActiveFilters, resetFilters } = useDirectoryFilters(members)
 </script>
