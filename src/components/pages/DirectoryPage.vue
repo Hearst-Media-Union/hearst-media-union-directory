@@ -17,7 +17,7 @@
         Showing {{ filteredMembers.length }} members
       </p>
 
-      <DirectoryDesktopTable />
+      <DirectoryDesktopTable :members="filteredMembers" />
 
       <div class="space-y-3 md:hidden">
         <div

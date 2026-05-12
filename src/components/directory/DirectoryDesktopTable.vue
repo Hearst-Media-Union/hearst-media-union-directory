@@ -10,5 +10,16 @@
       <span>Area/Office</span>
       <span>Committees</span>
     </div>
+
+    <DirectoryTableRow v-for="member in members" :key="member.name" :member="member" />
   </div>
 </template>
+
+<script setup lang="ts">
+import type { DirectoryFilterableMember } from '@/composables/useDirectoryFilters'
+import DirectoryTableRow from '@/components/directory/DirectoryTableRow.vue'
+
+defineProps<{
+  members: DirectoryFilterableMember[]
+}>()
+</script>
