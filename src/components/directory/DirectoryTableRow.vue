@@ -1,7 +1,8 @@
 <template>
   <button
     type="button"
-    class="directory-table-grid grid min-h-14 w-full items-center border-b border-(--color-app-border) px-4 text-left font-sans text-table text-(--color-app-text) transition-colors hover:bg-(--color-app-row-hover)"
+    class="directory-table-grid grid min-h-14 w-full cursor-pointer items-center border-b border-(--color-app-border) px-4 text-left font-sans text-table text-(--color-app-text) transition-colors hover:bg-(--color-app-row-hover)"
+    @click="emit('select', member)"
   >
     <span class="font-semibold text-(--color-brand-navy)">
       {{ member.name }}
@@ -27,5 +28,9 @@ import type { DirectoryFilterableMember } from '@/composables/useDirectoryFilter
 
 defineProps<{
   member: DirectoryFilterableMember
+}>()
+
+const emit = defineEmits<{
+  select: [member: DirectoryFilterableMember]
 }>()
 </script>
