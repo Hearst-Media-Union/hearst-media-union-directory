@@ -2,6 +2,7 @@
   <span
     class="inline-flex items-center rounded-sm px-2 py-1 text-xs font-medium text-(--color-app-text)"
     :class="committeeClasses"
+    :title="committeeLabel"
   >
     {{ committee }}
   </span>
@@ -29,5 +30,22 @@ const committeeClasses = computed(() => {
   }
 
   return classMap[normalizedCommittee] ?? 'bg-(--color-app-muted)'
+})
+
+const committeeLabel = computed(() => {
+  const normalizedCommittee = props.committee.trim().toLowerCase()
+
+  const labelMap: Record<string, string> = {
+    a: 'Admin',
+    lmc: 'Labor Management Committee',
+    bs: 'Brand Steward',
+    nmc: 'New Member Committee',
+    comm: 'Comms Committee',
+    cha: 'Chaos Committee',
+    eq: 'Equity Committee',
+    soc: 'Social Committee',
+  }
+
+  return labelMap[normalizedCommittee] ?? props.committee
 })
 </script>
