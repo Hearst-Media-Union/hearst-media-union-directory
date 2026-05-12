@@ -64,3 +64,9 @@
     min-height: 100vh;
   }
 }
+
+@layer utilities {
+  .directory-table-grid {
+    grid-template-columns: 1.4fr 1fr 1.4fr 1fr 1fr 1.2fr;
+  }
+}

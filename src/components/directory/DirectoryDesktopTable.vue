@@ -1,7 +1,7 @@
 <template>
   <div class="hidden bg-(--color-app-surface) md:block">
     <div
-      class="grid min-h-14 grid-cols-[1.4fr_1fr_1.4fr_1fr_1fr_1.2fr] items-center border-b border-(--color-app-border) px-4 font-condensed text-table font-semibold text-(--color-brand-navy)"
+      class="directory-table-grid grid min-h-14 items-center border-b border-(--color-app-border) px-4 font-condensed text-table font-semibold text-(--color-brand-navy)"
     >
       <span>Name</span>
       <span>Brand</span>
