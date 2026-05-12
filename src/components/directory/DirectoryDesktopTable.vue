@@ -11,7 +11,12 @@
       <span>Committees</span>
     </div>
 
-    <DirectoryTableRow v-for="member in members" :key="member.name" :member="member" />
+    <DirectoryTableRow
+      v-for="member in members"
+      :key="member.name"
+      :member="member"
+      @select="emit('select', $event)"
+    />
   </div>
 </template>
 
@@ -21,5 +26,8 @@ import DirectoryTableRow from '@/components/directory/DirectoryTableRow.vue'
 
 defineProps<{
   members: DirectoryFilterableMember[]
+}>()
+const emit = defineEmits<{
+  select: [member: DirectoryFilterableMember]
 }>()
 </script>

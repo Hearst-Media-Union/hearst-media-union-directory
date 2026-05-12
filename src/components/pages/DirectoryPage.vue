@@ -17,7 +17,14 @@
         Showing {{ filteredMembers.length }} members
       </p>
 
-      <DirectoryDesktopTable :members="filteredMembers" />
+      <DirectoryDesktopTable :members="filteredMembers" @select="openMemberModal" />
+
+      <MemberDetailModal
+        v-if="selectedMember"
+        :is-open="isMemberModalOpen"
+        :member="selectedMember"
+        @close="closeMemberModal"
+      />
 
       <div class="space-y-3 md:hidden">
         <div
@@ -40,10 +47,12 @@
 import { computed } from 'vue'
 import DirectoryToolbar from '@/components/directory/DirectoryToolbar.vue'
 import DirectoryDesktopTable from '@/components/directory/DirectoryDesktopTable.vue'
+import MemberDetailModal from '@/components/directory/MemberDetailModal.vue'
 import {
   useDirectoryFilters,
   type DirectoryFilterableMember,
 } from '@/composables/useDirectoryFilters'
+import { useMemberModal } from '@/composables/useMemberModal'
 
 const members = computed<DirectoryFilterableMember[]>(() => [
   {
@@ -89,4 +98,5 @@ const members = computed<DirectoryFilterableMember[]>(() => [
 ])
 
 const { searchTerm, filteredMembers, hasActiveFilters, resetFilters } = useDirectoryFilters(members)
+const { selectedMember, isMemberModalOpen, openMemberModal, closeMemberModal } = useMemberModal()
 </script>
