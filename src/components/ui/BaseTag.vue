@@ -26,7 +26,7 @@ const committeeClasses = computed(() => {
     comm: 'bg-(--color-accent-orange)',
     cha: 'bg-(--color-accent-light-blue)',
     eq: 'bg-(--color-accent-purple)',
-    soc: 'bg-(--color-accent-teal)',
+    soc: 'bg-(--color-accent-teal) text-white',
   }
 
   return classMap[normalizedCommittee] ?? 'bg-(--color-app-muted)'

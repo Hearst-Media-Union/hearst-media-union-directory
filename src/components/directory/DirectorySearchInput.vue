@@ -10,7 +10,7 @@
       id="directory-search"
       v-model="searchValue"
       class="[&_input]:min-h-12 [&_input]:w-full [&_input]:rounded-lg [&_input]:pl-10 [&_input]:text-nav"
-      placeholder="Search members by name, email, phone, brand..."
+      placeholder="Search members by name, brand, title, location, committee..."
     />
   </div>
 </template>

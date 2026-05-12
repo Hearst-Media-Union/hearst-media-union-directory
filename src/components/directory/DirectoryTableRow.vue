@@ -7,9 +7,9 @@
       {{ member.name }}
     </span>
 
-    <span>{{ member.brand }}</span>
+    <span class="min-w-0 truncate pr-3">{{ member.brand }}</span>
 
-    <span>{{ member.title }}</span>
+    <span class="min-w-0 truncate pr-3">{{ member.title }}</span>
 
     <span>{{ member.unit }}</span>
 
