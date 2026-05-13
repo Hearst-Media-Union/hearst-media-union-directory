@@ -3,7 +3,13 @@
     <DirectorySearchInput v-model="model" />
 
     <div class="flex flex-wrap items-center gap-2">
-      <DirectoryFiltersBar />
+      <DirectoryFiltersBar
+        :department-filter="departmentFilter"
+        :location-filter="locationFilter"
+        :committee-filter="committeeFilter"
+        :role-filter="roleFilter"
+        @update:department-filter="emit('update:departmentFilter', $event)"
+      />
 
       <button
         v-if="hasActiveFilters"
@@ -24,11 +30,16 @@ import DirectoryFiltersBar from '@/components/directory/DirectoryFiltersBar.vue'
 
 const props = defineProps<{
   searchTerm: string
+  departmentFilter: string
+  locationFilter: string
+  committeeFilter: string
+  roleFilter: string
   hasActiveFilters?: boolean
 }>()
 
 const emit = defineEmits<{
   'update:searchTerm': [value: string]
+  'update:departmentFilter': [value: string]
   reset: []
 }>()
 

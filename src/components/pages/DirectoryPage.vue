@@ -9,6 +9,10 @@
 
       <DirectoryToolbar
         v-model:search-term="searchTerm"
+        v-model:department-filter="departmentFilter"
+        :location-filter="locationFilter"
+        :committee-filter="committeeFilter"
+        :role-filter="roleFilter"
         :has-active-filters="hasActiveFilters"
         @reset="resetFilters"
       />
@@ -97,6 +101,15 @@ const members = computed<DirectoryFilterableMember[]>(() => [
   },
 ])
 
-const { searchTerm, filteredMembers, hasActiveFilters, resetFilters } = useDirectoryFilters(members)
+const {
+  searchTerm,
+  departmentFilter,
+  locationFilter,
+  committeeFilter,
+  roleFilter,
+  filteredMembers,
+  hasActiveFilters,
+  resetFilters,
+} = useDirectoryFilters(members)
 const { selectedMember, isMemberModalOpen, openMemberModal, closeMemberModal } = useMemberModal()
 </script>
