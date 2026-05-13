@@ -6,7 +6,8 @@
       @click.self="closeModal"
     >
       <section
-        class="max-h-[90vh] w-full max-w-180 overflow-y-auto rounded-lg bg-(--color-app-surface) shadow-(--shadow-modal)"
+        class="w-full overflow-y-auto bg-(--color-app-surface) shadow-(--shadow-modal)"
+        :class="modalClasses"
         role="dialog"
         aria-modal="true"
         :aria-labelledby="labelledBy"
@@ -28,16 +29,30 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, watch } from 'vue'
+import { computed, onBeforeUnmount, watch } from 'vue'
 
-const props = defineProps<{
-  isOpen: boolean
-  labelledBy?: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    isOpen: boolean
+    labelledBy?: string
+    variant?: 'default' | 'mobile-fullscreen'
+  }>(),
+  {
+    variant: 'default',
+  },
+)
 
 const emit = defineEmits<{
   close: []
 }>()
+
+const modalClasses = computed(() => {
+  if (props.variant === 'mobile-fullscreen') {
+    return 'h-screen max-h-screen rounded-none md:h-auto md:max-h-[90vh] md:max-w-180 md:rounded-lg'
+  }
+
+  return 'max-h-[90vh] max-w-180 rounded-lg'
+})
 
 function closeModal() {
   emit('close')
