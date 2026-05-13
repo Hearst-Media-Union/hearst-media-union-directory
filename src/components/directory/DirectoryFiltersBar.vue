@@ -1,9 +1,10 @@
 <template>
-  <div class="flex flex-wrap items-center gap-2">
+  <div ref="filtersBarElement" class="flex flex-wrap items-center gap-2">
     <div v-for="filter in filters" :key="filter.key" class="relative">
       <button
         type="button"
         class="flex min-h-10 min-w-36 items-center justify-between gap-4 rounded-lg border border-(--color-app-border) bg-(--color-app-surface) px-4 font-sans text-table font-medium text-(--color-brand-navy) transition-colors hover:bg-(--color-app-hover-surface)"
+        :aria-expanded="openFilterKey === filter.key"
         @click="toggleOpenFilter(filter.key)"
       >
         <span>
@@ -13,26 +14,38 @@
         <img src="/images/icons/caret-navy.png" alt="" class="h-4 w-4" />
       </button>
 
-      <div
-        v-if="openFilterKey === filter.key"
-        class="absolute left-0 top-11 z-20 min-w-48 rounded-lg border border-(--color-app-border) bg-(--color-app-surface) py-1 shadow-(--shadow-modal)"
+      <Transition
+        enter-active-class="transition duration-150 ease-out"
+        enter-from-class="-translate-y-1 opacity-0"
+        enter-to-class="translate-y-0 opacity-100"
+        leave-active-class="transition duration-100 ease-in"
+        leave-from-class="translate-y-0 opacity-100"
+        leave-to-class="-translate-y-1 opacity-0"
       >
-        <button
-          v-for="option in filter.options"
-          :key="option"
-          type="button"
-          class="block min-h-10 w-full px-4 text-left font-sans text-table text-(--color-brand-navy) hover:bg-(--color-app-hover-surface)"
-          @click="selectFilterValue(filter.key, option)"
+        <div
+          v-if="openFilterKey === filter.key"
+          class="absolute left-0 top-11 z-20 min-w-48 overflow-hidden rounded-lg border border-(--color-app-border) bg-(--color-app-surface) py-1 shadow-(--shadow-modal)"
         >
-          {{ option }}
-        </button>
-      </div>
+          <button
+            v-for="option in filter.options"
+            :key="option"
+            type="button"
+            class="block min-h-10 w-full px-4 text-left font-sans text-table text-(--color-brand-navy) transition-colors hover:bg-(--color-app-hover-surface)"
+            :class="{
+              'bg-(--color-app-hover-surface) font-semibold': filter.value === option,
+            }"
+            @click="selectFilterValue(filter.key, option)"
+          >
+            {{ option }}
+          </button>
+        </div>
+      </Transition>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 const props = withDefaults(
   defineProps<{
@@ -64,7 +77,12 @@ const emit = defineEmits<{
   'update:unitTitleFilter': [value: string]
 }>()
 
+const filtersBarElement = ref<HTMLElement | null>(null)
 const openFilterKey = ref('')
+
+function closeOpenFilter() {
+  openFilterKey.value = ''
+}
 
 function toggleOpenFilter(filterKey: string) {
   openFilterKey.value = openFilterKey.value === filterKey ? '' : filterKey
@@ -91,8 +109,34 @@ function selectFilterValue(filterKey: string, selectedValue: string) {
     emit('update:unitTitleFilter', getNextFilterValue(props.unitTitleFilter, selectedValue))
   }
 
-  openFilterKey.value = ''
+  closeOpenFilter()
 }
+
+function handleDocumentClick(event: MouseEvent) {
+  if (!filtersBarElement.value) {
+    return
+  }
+
+  if (event.target instanceof Node && !filtersBarElement.value.contains(event.target)) {
+    closeOpenFilter()
+  }
+}
+
+function handleKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    closeOpenFilter()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleDocumentClick)
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleDocumentClick)
+  window.removeEventListener('keydown', handleKeydown)
+})
 
 const filters = computed(() => [
   { label: 'Brand', key: 'brand', value: props.brandFilter, options: props.brandOptions },
