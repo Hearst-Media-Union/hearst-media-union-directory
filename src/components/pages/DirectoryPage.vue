@@ -9,6 +9,14 @@
 
       <DirectoryToolbar
         v-model:search-term="searchTerm"
+        v-model:brand-filter="brandFilter"
+        v-model:location-filter="locationFilter"
+        v-model:committee-filter="committeeFilter"
+        v-model:unit-title-filter="unitTitleFilter"
+        :brand-options="brandOptions"
+        :location-options="locationOptions"
+        :committee-options="committeeOptions"
+        :unit-title-options="unitTitleOptions"
         :has-active-filters="hasActiveFilters"
         @reset="resetFilters"
       />
@@ -78,7 +86,7 @@ const members = computed<DirectoryFilterableMember[]>(() => [
   {
     name: 'Cinzia Reale-Castello',
     email: 'cinzia.reale-castello@example.com',
-    phone: '555-0102',
+    phone: '618-555-0102',
     brand: 'Good Housekeeping Institute',
     title: 'Copy & Research Chief, Discoveries and Product Testing',
     unit: 'Senior Photo Editor',
@@ -97,6 +105,37 @@ const members = computed<DirectoryFilterableMember[]>(() => [
   },
 ])
 
-const { searchTerm, filteredMembers, hasActiveFilters, resetFilters } = useDirectoryFilters(members)
+function getUniqueSortedValues(values: string[]) {
+  return [...new Set(values)].sort((firstValue, secondValue) =>
+    firstValue.localeCompare(secondValue),
+  )
+}
+
+const brandOptions = computed(() =>
+  getUniqueSortedValues(members.value.map((member) => member.brand)),
+)
+
+const locationOptions = computed(() =>
+  getUniqueSortedValues(members.value.map((member) => member.area)),
+)
+
+const committeeOptions = computed(() =>
+  getUniqueSortedValues(members.value.flatMap((member) => member.committees)),
+)
+
+const unitTitleOptions = computed(() =>
+  getUniqueSortedValues(members.value.map((member) => member.unit)),
+)
+
+const {
+  searchTerm,
+  brandFilter,
+  locationFilter,
+  committeeFilter,
+  unitTitleFilter,
+  filteredMembers,
+  hasActiveFilters,
+  resetFilters,
+} = useDirectoryFilters(members)
 const { selectedMember, isMemberModalOpen, openMemberModal, closeMemberModal } = useMemberModal()
 </script>

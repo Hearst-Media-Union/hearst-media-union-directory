@@ -15,10 +15,10 @@ export type DirectoryFilterableMember = {
 
 export function useDirectoryFilters(members: Ref<DirectoryFilterableMember[]>) {
   const searchTerm = ref('')
-  const departmentFilter = ref<DirectoryFilterValue>('')
+  const brandFilter = ref<DirectoryFilterValue>('')
   const locationFilter = ref<DirectoryFilterValue>('')
   const committeeFilter = ref<DirectoryFilterValue>('')
-  const roleFilter = ref<DirectoryFilterValue>('')
+  const unitTitleFilter = ref<DirectoryFilterValue>('')
 
   const filteredMembers = computed(() => {
     const normalizedSearchTerm = searchTerm.value.trim().toLowerCase()
@@ -38,15 +38,14 @@ export function useDirectoryFilters(members: Ref<DirectoryFilterableMember[]>) {
         ]
           .filter((value): value is string => Boolean(value))
           .some((value) => value.toLowerCase().includes(normalizedSearchTerm))
-
-      const matchesDepartment = !departmentFilter.value || member.unit === departmentFilter.value
+      const matchesBrand = !brandFilter.value || member.brand === brandFilter.value
       const matchesLocation = !locationFilter.value || member.area === locationFilter.value
       const matchesCommittee =
         !committeeFilter.value || member.committees.includes(committeeFilter.value)
-      const matchesRole = !roleFilter.value || member.title === roleFilter.value
+      const matchesUnitTitle = !unitTitleFilter.value || member.unit === unitTitleFilter.value
 
       return (
-        matchesSearch && matchesDepartment && matchesLocation && matchesCommittee && matchesRole
+        matchesSearch && matchesBrand && matchesLocation && matchesCommittee && matchesUnitTitle
       )
     })
   })
@@ -54,27 +53,27 @@ export function useDirectoryFilters(members: Ref<DirectoryFilterableMember[]>) {
   const hasActiveFilters = computed(() => {
     return (
       searchTerm.value.length > 0 ||
-      departmentFilter.value.length > 0 ||
+      brandFilter.value.length > 0 ||
       locationFilter.value.length > 0 ||
       committeeFilter.value.length > 0 ||
-      roleFilter.value.length > 0
+      unitTitleFilter.value.length > 0
     )
   })
 
   function resetFilters() {
     searchTerm.value = ''
-    departmentFilter.value = ''
+    brandFilter.value = ''
     locationFilter.value = ''
     committeeFilter.value = ''
-    roleFilter.value = ''
+    unitTitleFilter.value = ''
   }
 
   return {
     searchTerm,
-    departmentFilter,
+    brandFilter,
     locationFilter,
     committeeFilter,
-    roleFilter,
+    unitTitleFilter,
     filteredMembers,
     hasActiveFilters,
     resetFilters,

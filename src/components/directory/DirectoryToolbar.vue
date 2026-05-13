@@ -3,16 +3,21 @@
     <DirectorySearchInput v-model="model" />
 
     <div class="flex flex-wrap items-center gap-2">
-      <button
-        v-for="filter in filters"
-        :key="filter"
-        type="button"
-        class="flex min-h-10 min-w-36 items-center justify-between gap-4 rounded-lg border border-(--color-app-border) bg-(--color-app-surface) px-4 font-sans text-table font-medium text-(--color-brand-navy)"
-      >
-        <span>{{ filter }}</span>
+      <DirectoryFiltersBar
+        :brand-filter="brandFilter"
+        :location-filter="locationFilter"
+        :committee-filter="committeeFilter"
+        :unit-title-filter="unitTitleFilter"
+        :brand-options="brandOptions"
+        :location-options="locationOptions"
+        :committee-options="committeeOptions"
+        :unit-title-options="unitTitleOptions"
+        @update:brand-filter="emit('update:brandFilter', $event)"
+        @update:location-filter="emit('update:locationFilter', $event)"
+        @update:committee-filter="emit('update:committeeFilter', $event)"
+        @update:unit-title-filter="emit('update:unitTitleFilter', $event)"
+      />
 
-        <img src="/images/icons/caret-navy.png" alt="" class="h-4 w-4" />
-      </button>
       <button
         v-if="hasActiveFilters"
         type="button"
@@ -28,14 +33,36 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import DirectorySearchInput from '@/components/directory/DirectorySearchInput.vue'
+import DirectoryFiltersBar from '@/components/directory/DirectoryFiltersBar.vue'
 
-const props = defineProps<{
-  searchTerm: string
-  hasActiveFilters?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    searchTerm: string
+    brandFilter: string
+    locationFilter: string
+    committeeFilter: string
+    unitTitleFilter: string
+    brandOptions?: string[]
+    locationOptions?: string[]
+    committeeOptions?: string[]
+    unitTitleOptions?: string[]
+    hasActiveFilters?: boolean
+  }>(),
+  {
+    brandOptions: () => [],
+    locationOptions: () => [],
+    committeeOptions: () => [],
+    unitTitleOptions: () => [],
+    hasActiveFilters: false,
+  },
+)
 
 const emit = defineEmits<{
   'update:searchTerm': [value: string]
+  'update:brandFilter': [value: string]
+  'update:locationFilter': [value: string]
+  'update:committeeFilter': [value: string]
+  'update:unitTitleFilter': [value: string]
   reset: []
 }>()
 
@@ -43,6 +70,4 @@ const model = computed({
   get: () => props.searchTerm,
   set: (value) => emit('update:searchTerm', value),
 })
-
-const filters = ['Department', 'Location', 'Committee', 'Role']
 </script>
