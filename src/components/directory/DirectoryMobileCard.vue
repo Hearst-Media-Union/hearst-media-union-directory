@@ -8,15 +8,15 @@
       {{ member.name }}
     </span>
 
-    <span class="mt-1 block text-sm text-(--color-app-text)">
-      {{ member.brand }}
+    <span class="block text-sm text-(--color-app-text)">
+      <em>{{ member.brand }}</em>
     </span>
 
     <span class="mt-1 block text-sm text-(--color-app-text)">
       {{ member.title }}
     </span>
 
-    <span class="mt-2 block text-sm text-(--color-app-muted-text)">
+    <span class="block text-sm text-(--color-app-muted-text)">
       {{ member.unit }} • {{ member.area }}
     </span>
 
