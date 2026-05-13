@@ -3,7 +3,12 @@
     <div v-for="filter in filters" :key="filter.key" class="relative">
       <button
         type="button"
-        class="flex min-h-10 min-w-36 items-center justify-between gap-4 rounded-lg border border-(--color-app-border) bg-(--color-app-surface) px-4 font-sans text-table font-medium text-(--color-brand-navy) transition-colors hover:bg-(--color-app-hover-surface)"
+        class="flex min-h-10 min-w-36 items-center justify-between gap-4 rounded-lg border px-4 font-sans text-table font-medium transition-colors"
+        :class="
+          filter.value
+            ? 'border-(--color-brand-navy) bg-(--color-app-hover-surface) text-(--color-brand-navy)'
+            : 'border-(--color-app-border) bg-(--color-app-surface) text-(--color-brand-navy) hover:bg-(--color-app-hover-surface)'
+        "
         :aria-expanded="openFilterKey === filter.key"
         @click="toggleOpenFilter(filter.key)"
       >
@@ -11,7 +16,12 @@
           {{ filter.value || filter.label }}
         </span>
 
-        <img src="/images/icons/caret-navy.png" alt="" class="h-4 w-4" />
+        <img
+          src="/images/icons/caret-navy.png"
+          alt=""
+          class="h-4 w-4 transition-transform duration-150"
+          :class="{ 'rotate-180': openFilterKey === filter.key }"
+        />
       </button>
 
       <Transition
@@ -45,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = withDefaults(
   defineProps<{
@@ -127,6 +137,19 @@ function handleKeydown(event: KeyboardEvent) {
     closeOpenFilter()
   }
 }
+
+watch(
+  () => [props.brandFilter, props.locationFilter, props.committeeFilter, props.unitTitleFilter],
+  ([brandFilter, locationFilter, committeeFilter, unitTitleFilter]) => {
+    const hasActiveFilter = [brandFilter, locationFilter, committeeFilter, unitTitleFilter].some(
+      (filterValue) => (filterValue ?? '').length > 0,
+    )
+
+    if (!hasActiveFilter) {
+      closeOpenFilter()
+    }
+  },
+)
 
 onMounted(() => {
   document.addEventListener('click', handleDocumentClick)

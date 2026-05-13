@@ -86,7 +86,7 @@ const members = computed<DirectoryFilterableMember[]>(() => [
   {
     name: 'Cinzia Reale-Castello',
     email: 'cinzia.reale-castello@example.com',
-    phone: '555-0102',
+    phone: '618-555-0102',
     brand: 'Good Housekeeping Institute',
     title: 'Copy & Research Chief, Discoveries and Product Testing',
     unit: 'Senior Photo Editor',
