@@ -20,28 +20,48 @@
 import { computed } from 'vue'
 
 const props = defineProps<{
-  departmentFilter?: string
+  brandFilter?: string
   locationFilter?: string
   committeeFilter?: string
-  roleFilter?: string
+  unitTitleFilter?: string
 }>()
 
 const emit = defineEmits<{
-  'update:departmentFilter': [value: string]
+  'update:brandFilter': [value: string]
+  'update:locationFilter': [value: string]
+  'update:committeeFilter': [value: string]
+  'update:unitTitleFilter': [value: string]
 }>()
 
+function toggleFilter(currentValue: string | undefined, nextValue: string) {
+  return currentValue === nextValue ? '' : nextValue
+}
+
 function handleFilterClick(filterKey: string) {
-  if (filterKey !== 'department') {
+  if (filterKey === 'brand') {
+    emit('update:brandFilter', toggleFilter(props.brandFilter, 'Car & Driver'))
     return
   }
 
-  emit('update:departmentFilter', props.departmentFilter === 'Assistant' ? '' : 'Assistant')
+  if (filterKey === 'location') {
+    emit('update:locationFilter', toggleFilter(props.locationFilter, 'Ann Arbor, MI'))
+    return
+  }
+
+  if (filterKey === 'committee') {
+    emit('update:committeeFilter', toggleFilter(props.committeeFilter, 'LMC'))
+    return
+  }
+
+  if (filterKey === 'unitTitle') {
+    emit('update:unitTitleFilter', toggleFilter(props.unitTitleFilter, 'Assistant'))
+  }
 }
 
 const filters = computed(() => [
-  { label: 'Department', key: 'department', value: props.departmentFilter },
+  { label: 'Brand', key: 'brand', value: props.brandFilter },
   { label: 'Location', key: 'location', value: props.locationFilter },
   { label: 'Committee', key: 'committee', value: props.committeeFilter },
-  { label: 'Role', key: 'role', value: props.roleFilter },
+  { label: 'Unit Title', key: 'unitTitle', value: props.unitTitleFilter },
 ])
 </script>

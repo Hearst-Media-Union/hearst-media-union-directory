@@ -9,10 +9,10 @@
 
       <DirectoryToolbar
         v-model:search-term="searchTerm"
-        v-model:department-filter="departmentFilter"
-        :location-filter="locationFilter"
-        :committee-filter="committeeFilter"
-        :role-filter="roleFilter"
+        v-model:brand-filter="brandFilter"
+        v-model:location-filter="locationFilter"
+        v-model:committee-filter="committeeFilter"
+        v-model:unit-title-filter="unitTitleFilter"
         :has-active-filters="hasActiveFilters"
         @reset="resetFilters"
       />
@@ -103,10 +103,10 @@ const members = computed<DirectoryFilterableMember[]>(() => [
 
 const {
   searchTerm,
-  departmentFilter,
+  brandFilter,
   locationFilter,
   committeeFilter,
-  roleFilter,
+  unitTitleFilter,
   filteredMembers,
   hasActiveFilters,
   resetFilters,

@@ -4,11 +4,14 @@
 
     <div class="flex flex-wrap items-center gap-2">
       <DirectoryFiltersBar
-        :department-filter="departmentFilter"
+        :brand-filter="brandFilter"
         :location-filter="locationFilter"
         :committee-filter="committeeFilter"
-        :role-filter="roleFilter"
-        @update:department-filter="emit('update:departmentFilter', $event)"
+        :unit-title-filter="unitTitleFilter"
+        @update:brand-filter="emit('update:brandFilter', $event)"
+        @update:location-filter="emit('update:locationFilter', $event)"
+        @update:committee-filter="emit('update:committeeFilter', $event)"
+        @update:unit-title-filter="emit('update:unitTitleFilter', $event)"
       />
 
       <button
@@ -30,16 +33,19 @@ import DirectoryFiltersBar from '@/components/directory/DirectoryFiltersBar.vue'
 
 const props = defineProps<{
   searchTerm: string
-  departmentFilter: string
+  brandFilter: string
   locationFilter: string
   committeeFilter: string
-  roleFilter: string
+  unitTitleFilter: string
   hasActiveFilters?: boolean
 }>()
 
 const emit = defineEmits<{
   'update:searchTerm': [value: string]
-  'update:departmentFilter': [value: string]
+  'update:brandFilter': [value: string]
+  'update:locationFilter': [value: string]
+  'update:committeeFilter': [value: string]
+  'update:unitTitleFilter': [value: string]
   reset: []
 }>()
 
