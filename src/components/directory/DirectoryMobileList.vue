@@ -1,5 +1,5 @@
 <template>
-  <div v-if="members.length > 0" class="space-y-3">
+  <div v-if="members.length > 0">
     <DirectoryMobileCard
       v-for="member in members"
       :key="member.name"

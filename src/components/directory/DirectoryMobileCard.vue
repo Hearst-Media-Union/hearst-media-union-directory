@@ -1,7 +1,7 @@
 <template>
   <button
     type="button"
-    class="w-full rounded-lg border border-(--color-app-border) bg-white p-4 text-left font-sans text-(--color-app-text) transition-colors hover:bg-(--color-app-row-hover)"
+    class="w-full border-b border-(--color-app-border) px-0 py-5 text-left font-sans text-(--color-app-text) transition-colors hover:bg-(--color-app-row-hover)"
     @click="emit('select', member)"
   >
     <span class="block text-base font-semibold text-(--color-brand-navy)">
