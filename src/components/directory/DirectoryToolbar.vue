@@ -8,6 +8,10 @@
         :location-filter="locationFilter"
         :committee-filter="committeeFilter"
         :unit-title-filter="unitTitleFilter"
+        :brand-options="brandOptions"
+        :location-options="locationOptions"
+        :committee-options="committeeOptions"
+        :unit-title-options="unitTitleOptions"
         @update:brand-filter="emit('update:brandFilter', $event)"
         @update:location-filter="emit('update:locationFilter', $event)"
         @update:committee-filter="emit('update:committeeFilter', $event)"
@@ -31,14 +35,27 @@ import { computed } from 'vue'
 import DirectorySearchInput from '@/components/directory/DirectorySearchInput.vue'
 import DirectoryFiltersBar from '@/components/directory/DirectoryFiltersBar.vue'
 
-const props = defineProps<{
-  searchTerm: string
-  brandFilter: string
-  locationFilter: string
-  committeeFilter: string
-  unitTitleFilter: string
-  hasActiveFilters?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    searchTerm: string
+    brandFilter: string
+    locationFilter: string
+    committeeFilter: string
+    unitTitleFilter: string
+    brandOptions?: string[]
+    locationOptions?: string[]
+    committeeOptions?: string[]
+    unitTitleOptions?: string[]
+    hasActiveFilters?: boolean
+  }>(),
+  {
+    brandOptions: () => [],
+    locationOptions: () => [],
+    committeeOptions: () => [],
+    unitTitleOptions: () => [],
+    hasActiveFilters: false,
+  },
+)
 
 const emit = defineEmits<{
   'update:searchTerm': [value: string]

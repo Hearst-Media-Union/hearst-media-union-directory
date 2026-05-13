@@ -13,6 +13,10 @@
         v-model:location-filter="locationFilter"
         v-model:committee-filter="committeeFilter"
         v-model:unit-title-filter="unitTitleFilter"
+        :brand-options="brandOptions"
+        :location-options="locationOptions"
+        :committee-options="committeeOptions"
+        :unit-title-options="unitTitleOptions"
         :has-active-filters="hasActiveFilters"
         @reset="resetFilters"
       />
@@ -100,6 +104,28 @@ const members = computed<DirectoryFilterableMember[]>(() => [
     committees: [],
   },
 ])
+
+function getUniqueSortedValues(values: string[]) {
+  return [...new Set(values)].sort((firstValue, secondValue) =>
+    firstValue.localeCompare(secondValue),
+  )
+}
+
+const brandOptions = computed(() =>
+  getUniqueSortedValues(members.value.map((member) => member.brand)),
+)
+
+const locationOptions = computed(() =>
+  getUniqueSortedValues(members.value.map((member) => member.area)),
+)
+
+const committeeOptions = computed(() =>
+  getUniqueSortedValues(members.value.flatMap((member) => member.committees)),
+)
+
+const unitTitleOptions = computed(() =>
+  getUniqueSortedValues(members.value.map((member) => member.unit)),
+)
 
 const {
   searchTerm,

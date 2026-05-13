@@ -19,12 +19,28 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-const props = defineProps<{
-  brandFilter?: string
-  locationFilter?: string
-  committeeFilter?: string
-  unitTitleFilter?: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    brandFilter?: string
+    locationFilter?: string
+    committeeFilter?: string
+    unitTitleFilter?: string
+    brandOptions?: string[]
+    locationOptions?: string[]
+    committeeOptions?: string[]
+    unitTitleOptions?: string[]
+  }>(),
+  {
+    brandFilter: '',
+    locationFilter: '',
+    committeeFilter: '',
+    unitTitleFilter: '',
+    brandOptions: () => ['Car & Driver'],
+    locationOptions: () => ['Ann Arbor, MI'],
+    committeeOptions: () => ['LMC'],
+    unitTitleOptions: () => ['Assistant'],
+  },
+)
 
 const emit = defineEmits<{
   'update:brandFilter': [value: string]
@@ -33,28 +49,41 @@ const emit = defineEmits<{
   'update:unitTitleFilter': [value: string]
 }>()
 
-function toggleFilter(currentValue: string | undefined, nextValue: string) {
+function toggleFilter(currentValue: string, nextValue: string) {
   return currentValue === nextValue ? '' : nextValue
+}
+
+function getFirstOption(options: string[]) {
+  return options[0] ?? ''
 }
 
 function handleFilterClick(filterKey: string) {
   if (filterKey === 'brand') {
-    emit('update:brandFilter', toggleFilter(props.brandFilter, 'Car & Driver'))
+    emit('update:brandFilter', toggleFilter(props.brandFilter, getFirstOption(props.brandOptions)))
     return
   }
 
   if (filterKey === 'location') {
-    emit('update:locationFilter', toggleFilter(props.locationFilter, 'Ann Arbor, MI'))
+    emit(
+      'update:locationFilter',
+      toggleFilter(props.locationFilter, getFirstOption(props.locationOptions)),
+    )
     return
   }
 
   if (filterKey === 'committee') {
-    emit('update:committeeFilter', toggleFilter(props.committeeFilter, 'LMC'))
+    emit(
+      'update:committeeFilter',
+      toggleFilter(props.committeeFilter, getFirstOption(props.committeeOptions)),
+    )
     return
   }
 
   if (filterKey === 'unitTitle') {
-    emit('update:unitTitleFilter', toggleFilter(props.unitTitleFilter, 'Assistant'))
+    emit(
+      'update:unitTitleFilter',
+      toggleFilter(props.unitTitleFilter, getFirstOption(props.unitTitleOptions)),
+    )
   }
 }
 
