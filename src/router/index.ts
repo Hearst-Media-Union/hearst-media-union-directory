@@ -4,16 +4,11 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LandingPage from '@/components/pages/LandingPage.vue'
 import NewMembersPage from '@/components/pages/NewMembersPage.vue'
 import LeadershipPage from '@/components/pages/LeadershipPage.vue'
+import CommitteesPage from '@/components/pages/CommitteesPage.vue'
 
 const DirectoryPage: Component = {
   render() {
     return h('div', 'Directory Page')
-  },
-}
-
-const CommitteesPage: Component = {
-  render() {
-    return h('div', 'Committees Page')
   },
 }
 
