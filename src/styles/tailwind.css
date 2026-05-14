@@ -69,4 +69,20 @@
   .directory-table-grid {
     grid-template-columns: 1.2fr 1.15fr 1.45fr 1fr 0.85fr 1.35fr;
   }
+
+  .guide-section {
+    @apply scroll-mt-8 rounded-2xl border border-(--color-border-subtle) bg-white p-5 md:p-6;
+  }
+
+  .guide-section-highlight {
+    @apply scroll-mt-8 rounded-2xl border border-(--color-brand-red) bg-white p-5 md:p-6;
+  }
+
+  .guide-content {
+    @apply max-w-3xl space-y-4 text-sm leading-6 text-(--color-brand-navy);
+  }
+
+  .guide-link {
+    @apply font-semibold text-(--color-brand-red) hover:underline;
+  }
 }

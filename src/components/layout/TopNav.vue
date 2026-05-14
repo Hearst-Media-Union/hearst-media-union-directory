@@ -14,9 +14,13 @@
 
         <div class="flex items-center">
           <div class="hidden items-center gap-6 text-sm md:flex">
-            <a href="#" class="hover:underline">Directory</a>
-            <a href="#" class="hover:underline">Committees</a>
-            <a href="#" class="hover:underline">Resources</a>
+            <RouterLink to="/directory" class="hover:underline"> Directory </RouterLink>
+
+            <RouterLink to="/new-members" class="hover:underline"> New Members </RouterLink>
+
+            <RouterLink to="/committees" class="hover:underline"> Committees </RouterLink>
+
+            <RouterLink to="/resources" class="hover:underline"> Resources </RouterLink>
           </div>
 
           <button
@@ -45,15 +49,28 @@
     </template>
 
     <div class="flex flex-col divide-y divide-(--color-app-border)">
-      <a href="#" class="block py-4 text-(--color-app-text)">Directory</a>
-      <a href="#" class="block py-4 text-(--color-app-text)">Committees</a>
-      <a href="#" class="block py-4 text-(--color-app-text)">Resources</a>
+      <RouterLink to="/directory" class="block py-4 text-(--color-app-text)" @click="closeDrawer">
+        Directory
+      </RouterLink>
+
+      <RouterLink to="/new-members" class="block py-4 text-(--color-app-text)" @click="closeDrawer">
+        New Members
+      </RouterLink>
+
+      <RouterLink to="/committees" class="block py-4 text-(--color-app-text)" @click="closeDrawer">
+        Committees
+      </RouterLink>
+
+      <RouterLink to="/resources" class="block py-4 text-(--color-app-text)" @click="closeDrawer">
+        Resources
+      </RouterLink>
     </div>
   </BaseDrawer>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { RouterLink } from 'vue-router'
 
 import PageContainer from '@/components/layout/PageContainer.vue'
 import BaseDrawer from '@/components/ui/BaseDrawer.vue'
