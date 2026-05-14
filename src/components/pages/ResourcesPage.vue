@@ -104,6 +104,11 @@ const resourceCategories: ResourceCategory[] = [
         description: 'Official WGAE membership signup form.',
         href: '#',
       },
+      {
+        title: 'New Member Guide',
+        description: 'A comprehensive guide for new WGAE members.',
+        href: '#',
+      },
     ],
   },
   {
