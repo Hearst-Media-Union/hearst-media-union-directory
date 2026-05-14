@@ -3,16 +3,11 @@ import type { Component } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import LandingPage from '@/components/pages/LandingPage.vue'
 import NewMembersPage from '@/components/pages/NewMembersPage.vue'
+import LeadershipPage from '@/components/pages/LeadershipPage.vue'
 
 const DirectoryPage: Component = {
   render() {
     return h('div', 'Directory Page')
-  },
-}
-
-const LeadershipPage: Component = {
-  render() {
-    return h('div', 'Leadership Page')
   },
 }
 
@@ -126,7 +121,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to) => {
-  const isAuthenticated = false
+  const isAuthenticated = true
   const isAdmin = false
 
   if (to.meta.requiresAuth && !isAuthenticated) {
