@@ -2,14 +2,12 @@
   <TopNav />
 
   <PageContainer>
-    <DirectoryPage />
+    <RouterView />
   </PageContainer>
 </template>
 
 <script setup lang="ts">
+import { RouterView } from 'vue-router'
 import PageContainer from './components/layout/PageContainer.vue'
 import TopNav from './components/layout/TopNav.vue'
-import DirectoryPage from './components/pages/DirectoryPage.vue'
 </script>
-
-<style scoped></style>
