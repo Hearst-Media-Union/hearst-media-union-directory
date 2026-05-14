@@ -5,16 +5,11 @@ import LandingPage from '@/components/pages/LandingPage.vue'
 import NewMembersPage from '@/components/pages/NewMembersPage.vue'
 import LeadershipPage from '@/components/pages/LeadershipPage.vue'
 import CommitteesPage from '@/components/pages/CommitteesPage.vue'
+import ResourcesPage from '@/components/pages/ResourcesPage.vue'
 
 const DirectoryPage: Component = {
   render() {
     return h('div', 'Directory Page')
-  },
-}
-
-const ResourcesPage: Component = {
-  render() {
-    return h('div', 'Resources Page')
   },
 }
 
