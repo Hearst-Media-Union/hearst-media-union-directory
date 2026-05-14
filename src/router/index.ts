@@ -6,24 +6,9 @@ import NewMembersPage from '@/components/pages/NewMembersPage.vue'
 import LeadershipPage from '@/components/pages/LeadershipPage.vue'
 import CommitteesPage from '@/components/pages/CommitteesPage.vue'
 import ResourcesPage from '@/components/pages/ResourcesPage.vue'
-
-const DirectoryPage: Component = {
-  render() {
-    return h('div', 'Directory Page')
-  },
-}
-
-const HelpPage: Component = {
-  render() {
-    return h('div', 'Help Page')
-  },
-}
-
-const ContactPage: Component = {
-  render() {
-    return h('div', 'Contact Page')
-  },
-}
+import DirectoryPage from '@/components/pages/DirectoryPage.vue'
+import HelpPage from '@/components/pages/HelpPage.vue'
+import ContactPage from '@/components/pages/ContactPage.vue'
 
 const AdminPage: Component = {
   render() {
