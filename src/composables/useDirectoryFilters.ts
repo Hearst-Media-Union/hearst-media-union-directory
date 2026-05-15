@@ -1,17 +1,8 @@
 import { computed, ref, type Ref } from 'vue'
+import type { MemberListItem } from '@/types/member'
 
 export type DirectoryFilterValue = string
-
-export type DirectoryFilterableMember = {
-  name: string
-  email?: string
-  phone?: string
-  brand: string
-  title: string
-  unit: string
-  area: string
-  committees: string[]
-}
+export type DirectoryFilterableMember = MemberListItem
 
 export function useDirectoryFilters(members: Ref<DirectoryFilterableMember[]>) {
   const searchTerm = ref('')
