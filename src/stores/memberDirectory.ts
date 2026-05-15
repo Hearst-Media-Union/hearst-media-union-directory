@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { MemberListItem } from '@/types/member'
+import { fetchMemberDirectory } from '@/services/memberDirectory'
 
 export const useMemberDirectoryStore = defineStore('memberDirectory', () => {
   const members = ref<MemberListItem[]>([
@@ -82,7 +83,9 @@ export const useMemberDirectoryStore = defineStore('memberDirectory', () => {
     startLoading()
 
     try {
-      setMembers(members.value)
+      const nextMembers = await fetchMemberDirectory()
+
+      setMembers(nextMembers)
     } catch {
       setError('Unable to load directory members.')
     } finally {

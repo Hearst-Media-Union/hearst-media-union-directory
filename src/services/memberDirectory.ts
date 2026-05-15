@@ -14,9 +14,11 @@ type MemberDirectoryRow = {
 }
 
 function getDisplayName(member: MemberDirectoryRow) {
-  const firstName = member.preferred_name || member.legal_first_name
+  if (member.preferred_name) {
+    return member.preferred_name
+  }
 
-  return `${firstName} ${member.legal_last_name}`
+  return `${member.legal_first_name} ${member.legal_last_name}`
 }
 
 function mapMemberDirectoryRow(member: MemberDirectoryRow): MemberListItem {
