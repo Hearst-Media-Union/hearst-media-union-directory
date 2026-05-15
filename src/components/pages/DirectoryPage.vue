@@ -24,15 +24,26 @@
       <p class="font-sans text-meta text-(--color-brand-navy)">
         Showing {{ filteredMembers.length }} members
       </p>
+      <p v-if="isLoading" class="font-sans text-meta text-(--color-brand-navy)">
+        Loading members...
+      </p>
+
+      <p v-else-if="errorMessage" class="font-sans text-meta text-(--color-brand-red)">
+        {{ errorMessage }}
+      </p>
+
+      <p v-else-if="hasNoMembers" class="font-sans text-meta text-(--color-brand-navy)">
+        No members found.
+      </p>
 
       <DirectoryDesktopTable
-        v-if="isDesktopDirectory"
+        v-if="canShowDirectoryResults && isDesktopDirectory"
         :members="filteredMembers"
         @select="openMemberModal"
       />
 
       <DirectoryMobileList
-        v-if="isMobileDirectory"
+        v-if="canShowDirectoryResults && isMobileDirectory"
         :members="filteredMembers"
         @select="openMemberModal"
       />
@@ -48,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import DirectoryToolbar from '@/components/directory/DirectoryToolbar.vue'
 import DirectoryDesktopTable from '@/components/directory/DirectoryDesktopTable.vue'
@@ -60,7 +71,15 @@ import { useMemberModal } from '@/composables/useMemberModal'
 import { useMemberDirectoryStore } from '@/stores/memberDirectory'
 
 const memberDirectoryStore = useMemberDirectoryStore()
-const { members } = storeToRefs(memberDirectoryStore)
+const { members, isLoading, errorMessage, hasNoMembers } = storeToRefs(memberDirectoryStore)
+
+const canShowDirectoryResults = computed(
+  () => !isLoading.value && !errorMessage.value && !hasNoMembers.value,
+)
+
+onMounted(() => {
+  void memberDirectoryStore.loadMembers()
+})
 
 function getUniqueSortedValues(values: string[]) {
   return [...new Set(values)].sort((firstValue, secondValue) =>
