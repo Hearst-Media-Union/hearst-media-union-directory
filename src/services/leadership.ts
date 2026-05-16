@@ -1,25 +1,25 @@
 import { supabase } from '@/lib/supabaseClient'
 import type { LeadershipItem, LeadershipRole, LeadershipScopeType } from '@/types/leadership'
 
+type LeadershipMemberRow = {
+  legal_first_name: string
+  legal_last_name: string
+  preferred_name: string | null
+  work_email: string | null
+  brand: string | null
+  unit_title: string | null
+  location: string | null
+}
+
 type LeadershipAssignmentRow = {
   id: string
   leadership_role: LeadershipRole
   scope_type: LeadershipScopeType
   scope_value: string
-  members:
-    | {
-        legal_first_name: string
-        legal_last_name: string
-        preferred_name: string | null
-        work_email: string | null
-        brand: string | null
-        unit_title: string | null
-        location: string | null
-      }[]
-    | null
+  members: LeadershipMemberRow | LeadershipMemberRow[] | null
 }
 
-function getDisplayName(member: NonNullable<LeadershipAssignmentRow['members']>[number]) {
+function getDisplayName(member: LeadershipMemberRow) {
   if (member.preferred_name) {
     return member.preferred_name
   }
@@ -28,7 +28,7 @@ function getDisplayName(member: NonNullable<LeadershipAssignmentRow['members']>[
 }
 
 function mapLeadershipAssignmentRow(row: LeadershipAssignmentRow): LeadershipItem | null {
-  const member = row.members?.[0]
+  const member = Array.isArray(row.members) ? row.members[0] : row.members
 
   if (!member) {
     return null
