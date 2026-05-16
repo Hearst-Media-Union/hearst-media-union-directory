@@ -39,19 +39,21 @@
       <DirectoryDesktopTable
         v-if="canShowDirectoryResults && isDesktopDirectory"
         :members="filteredMembers"
-        @select="openMemberModal"
+        @select="handleSelectMember"
       />
 
       <DirectoryMobileList
         v-if="canShowDirectoryResults && isMobileDirectory"
         :members="filteredMembers"
-        @select="openMemberModal"
+        @select="handleSelectMember"
       />
 
       <MemberDetailModal
-        v-if="selectedMember"
+        v-if="selectedMember && selectedMemberDetail"
         :is-open="isMemberModalOpen"
-        :member="selectedMember"
+        :member="selectedMemberDetail"
+        :is-loading="isLoadingMemberDetail"
+        :error-message="memberDetailErrorMessage"
         @close="closeMemberModal"
       />
     </div>
@@ -69,9 +71,18 @@ import { useResponsiveDirectory } from '@/composables/useResponsiveDirectory'
 import { useDirectoryFilters } from '@/composables/useDirectoryFilters'
 import { useMemberModal } from '@/composables/useMemberModal'
 import { useMemberDirectoryStore } from '@/stores/memberDirectory'
+import type { MemberListItem } from '@/types/member'
 
 const memberDirectoryStore = useMemberDirectoryStore()
-const { members, isLoading, errorMessage, hasNoMembers } = storeToRefs(memberDirectoryStore)
+const {
+  members,
+  isLoading,
+  errorMessage,
+  hasNoMembers,
+  selectedMemberDetail,
+  isLoadingMemberDetail,
+  memberDetailErrorMessage,
+} = storeToRefs(memberDirectoryStore)
 
 const canShowDirectoryResults = computed(
   () => !isLoading.value && !errorMessage.value && !hasNoMembers.value,
@@ -80,6 +91,12 @@ const canShowDirectoryResults = computed(
 onMounted(() => {
   void memberDirectoryStore.loadMembers()
 })
+
+async function handleSelectMember(member: MemberListItem) {
+  openMemberModal(member)
+
+  await memberDirectoryStore.loadMemberDetail(member.id)
+}
 
 function getUniqueSortedValues(values: string[]) {
   return [...new Set(values)].sort((firstValue, secondValue) =>

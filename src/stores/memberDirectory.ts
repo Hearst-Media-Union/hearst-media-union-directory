@@ -1,13 +1,16 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { MemberListItem } from '@/types/member'
-import { fetchMemberDirectory } from '@/services/memberDirectory'
+import type { MemberDetail, MemberListItem } from '@/types/member'
+import { fetchMemberDetail, fetchMemberDirectory } from '@/services/memberDirectory'
 
 export const useMemberDirectoryStore = defineStore('memberDirectory', () => {
   const members = ref<MemberListItem[]>([])
   const isLoading = ref(false)
   const hasLoadedMembers = ref(false)
   const errorMessage = ref<string | null>(null)
+  const selectedMemberDetail = ref<MemberDetail | null>(null)
+  const isLoadingMemberDetail = ref(false)
+  const memberDetailErrorMessage = ref<string | null>(null)
 
   const memberCount = computed(() => members.value.length)
   const hasNoMembers = computed(() => hasLoadedMembers.value && memberCount.value === 0)
@@ -34,6 +37,11 @@ export const useMemberDirectoryStore = defineStore('memberDirectory', () => {
     errorMessage.value = null
   }
 
+  function clearMemberDetail() {
+    selectedMemberDetail.value = null
+    memberDetailErrorMessage.value = null
+  }
+
   async function loadMembers() {
     if (hasLoadedMembers.value) {
       return
@@ -52,11 +60,29 @@ export const useMemberDirectoryStore = defineStore('memberDirectory', () => {
     }
   }
 
+  async function loadMemberDetail(memberId: string) {
+    isLoadingMemberDetail.value = true
+    memberDetailErrorMessage.value = null
+
+    try {
+      const memberDetail = await fetchMemberDetail(memberId)
+
+      selectedMemberDetail.value = memberDetail
+    } catch {
+      memberDetailErrorMessage.value = 'Unable to load member details.'
+    } finally {
+      isLoadingMemberDetail.value = false
+    }
+  }
+
   return {
     members,
     isLoading,
     hasLoadedMembers,
     errorMessage,
+    selectedMemberDetail,
+    isLoadingMemberDetail,
+    memberDetailErrorMessage,
     memberCount,
     hasNoMembers,
     setMembers,
@@ -64,6 +90,8 @@ export const useMemberDirectoryStore = defineStore('memberDirectory', () => {
     finishLoading,
     setError,
     clearError,
+    clearMemberDetail,
     loadMembers,
+    loadMemberDetail,
   }
 })

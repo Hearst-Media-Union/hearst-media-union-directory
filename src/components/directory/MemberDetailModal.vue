@@ -27,6 +27,14 @@
         <BaseButton variant="ghost" size="sm" font="sans" @click="emit('close')">Close</BaseButton>
       </div>
 
+      <p v-if="isLoading" class="font-sans text-table text-(--color-app-text)">
+        Loading member details...
+      </p>
+
+      <p v-else-if="errorMessage" class="font-sans text-table text-(--color-brand-red)">
+        {{ errorMessage }}
+      </p>
+
       <section class="space-y-2">
         <h3 class="mt-4 font-label text-xs tracking-wide uppercase text-(--color-brand-navy)">
           Contact
@@ -34,9 +42,16 @@
 
         <dl class="grid gap-3 font-sans text-table">
           <div>
-            <dt class="text-meta text-(--color-app-text)">Email</dt>
+            <dt class="text-meta text-(--color-app-text)">Work Email</dt>
             <dd class="font-medium text-(--color-brand-navy)">
               {{ member.email || 'Not provided' }}
+            </dd>
+          </div>
+
+          <div>
+            <dt class="text-meta text-(--color-app-text)">Personal Email</dt>
+            <dd class="font-medium text-(--color-brand-navy)">
+              {{ member.personalEmail || 'Not provided' }}
             </dd>
           </div>
 
@@ -50,7 +65,7 @@
       </section>
 
       <section class="space-y-3">
-        <h3 class="font-label text-xs tracking-wide uppercasetext-(--color-brand-navy)">
+        <h3 class="font-label text-xs tracking-wide uppercase text-(--color-brand-navy)">
           Position
         </h3>
 
@@ -97,11 +112,13 @@
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseTag from '@/components/ui/BaseTag.vue'
-import type { DirectoryFilterableMember } from '@/composables/useDirectoryFilters'
+import type { MemberDetail } from '@/types/member'
 
 defineProps<{
   isOpen: boolean
-  member: DirectoryFilterableMember
+  member: MemberDetail
+  isLoading: boolean
+  errorMessage: string | null
 }>()
 
 const emit = defineEmits<{
