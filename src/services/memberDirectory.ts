@@ -1,6 +1,14 @@
 import { supabase } from '@/lib/supabaseClient'
 import type { MemberListItem } from '@/types/member'
 
+type MemberCommitteeRow = {
+  committees:
+    | {
+        name: string
+      }[]
+    | null
+}
+
 type MemberDirectoryRow = {
   legal_first_name: string
   legal_last_name: string
@@ -11,6 +19,18 @@ type MemberDirectoryRow = {
   assignment_name: string | null
   unit_title: string | null
   location: string | null
+  member_committees: MemberCommitteeRow[]
+}
+
+const committeeAbbreviations: Record<string, string> = {
+  'New Member Committee': 'NMC',
+  'Social Committee': 'SOC',
+  'Comms Committee': 'COMM',
+  'Equity Committee': 'EQ',
+  'Chaos Committee': 'CHA',
+  'Labor Management Committee': 'LMC',
+  'Area Captain': 'AC',
+  'Brand Steward': 'BS',
 }
 
 function getDisplayName(member: MemberDirectoryRow) {
@@ -19,6 +39,10 @@ function getDisplayName(member: MemberDirectoryRow) {
   }
 
   return `${member.legal_first_name} ${member.legal_last_name}`
+}
+
+function getCommitteeTagLabel(committeeName: string) {
+  return committeeAbbreviations[committeeName] || committeeName
 }
 
 function mapMemberDirectoryRow(member: MemberDirectoryRow): MemberListItem {
@@ -30,7 +54,10 @@ function mapMemberDirectoryRow(member: MemberDirectoryRow): MemberListItem {
     title: member.assignment_name || '',
     unit: member.unit_title || '',
     area: member.location || '',
-    committees: [],
+    committees: member.member_committees
+      .flatMap((memberCommittee) => memberCommittee.committees ?? [])
+      .map((committee) => committee.name)
+      .map(getCommitteeTagLabel),
   }
 }
 
@@ -47,7 +74,12 @@ export async function fetchMemberDirectory() {
         brand,
         assignment_name,
         unit_title,
-        location
+        location,
+        member_committees (
+          committees (
+            name
+          )
+        )
       `,
     )
     .eq('is_active', true)
