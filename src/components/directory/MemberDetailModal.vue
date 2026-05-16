@@ -42,9 +42,16 @@
 
         <dl class="grid gap-3 font-sans text-table">
           <div>
-            <dt class="text-meta text-(--color-app-text)">Email</dt>
+            <dt class="text-meta text-(--color-app-text)">Work Email</dt>
             <dd class="font-medium text-(--color-brand-navy)">
               {{ member.email || 'Not provided' }}
+            </dd>
+          </div>
+
+          <div>
+            <dt class="text-meta text-(--color-app-text)">Personal Email</dt>
+            <dd class="font-medium text-(--color-brand-navy)">
+              {{ member.personalEmail || 'Not provided' }}
             </dd>
           </div>
 
@@ -58,7 +65,7 @@
       </section>
 
       <section class="space-y-3">
-        <h3 class="font-label text-xs tracking-wide uppercasetext-(--color-brand-navy)">
+        <h3 class="font-label text-xs tracking-wide uppercase text-(--color-brand-navy)">
           Position
         </h3>
 
@@ -105,11 +112,11 @@
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseTag from '@/components/ui/BaseTag.vue'
-import type { MemberListItem } from '@/types/member'
+import type { MemberDetail } from '@/types/member'
 
 defineProps<{
   isOpen: boolean
-  member: MemberListItem
+  member: MemberDetail
   isLoading: boolean
   errorMessage: string | null
 }>()
