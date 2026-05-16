@@ -15,6 +15,14 @@
       </p>
     </header>
 
+    <p v-if="isLoadingLeadership" class="text-sm text-(--color-brand-navy)">
+      Loading leadership contacts...
+    </p>
+
+    <p v-else-if="leadershipErrorMessage" class="text-sm text-(--color-brand-red)">
+      {{ leadershipErrorMessage }}
+    </p>
+
     <section class="space-y-4">
       <div class="space-y-4">
         <div class="max-w-3xl">
@@ -164,41 +172,42 @@
 </template>
 
 <script setup lang="ts">
-type AreaCaptain = {
-  name: string
-  area: string
-  brand: string
-  email: string
-}
+import { computed, onMounted, ref } from 'vue'
+import { fetchLeadershipAssignments } from '@/services/leadership'
+import type { LeadershipItem } from '@/types/leadership'
 
-type WgaeLeader = {
+type ExternalLeadershipContact = {
   name: string
   title: string
   email: string
 }
 
-const areaCaptains: AreaCaptain[] = [
-  {
-    name: 'TBD',
-    area: 'TBD',
-    brand: 'TBD',
-    email: '',
-  },
-]
+const leadershipAssignments = ref<LeadershipItem[]>([])
+const isLoadingLeadership = ref(false)
+const leadershipErrorMessage = ref<string | null>(null)
 
-const businessReps: WgaeLeader[] = [
-  {
-    name: 'TBD',
-    title: 'Business Representative',
-    email: '',
-  },
-]
+const areaCaptains = computed(() =>
+  leadershipAssignments.value.filter((assignment) => assignment.role === 'area_captain'),
+)
 
-const guildLeadership: WgaeLeader[] = [
-  {
-    name: 'TBD',
-    title: 'TBD',
-    email: '',
-  },
-]
+const businessReps: ExternalLeadershipContact[] = []
+
+const guildLeadership: ExternalLeadershipContact[] = []
+
+async function loadLeadershipAssignments() {
+  isLoadingLeadership.value = true
+  leadershipErrorMessage.value = null
+
+  try {
+    leadershipAssignments.value = await fetchLeadershipAssignments()
+  } catch {
+    leadershipErrorMessage.value = 'Unable to load leadership contacts.'
+  } finally {
+    isLoadingLeadership.value = false
+  }
+}
+
+onMounted(() => {
+  void loadLeadershipAssignments()
+})
 </script>
