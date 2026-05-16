@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
-import type { MemberListItem } from '@/types/member'
+import type { MemberDetail, MemberListItem } from '@/types/member'
 
 type MemberCommitteeRow = {
   committees:
@@ -15,6 +15,7 @@ type MemberDirectoryRow = {
   legal_last_name: string
   preferred_name: string | null
   work_email: string | null
+  personal_email: string | null
   primary_phone: string | null
   brand: string | null
   assignment_name: string | null
@@ -63,6 +64,25 @@ function mapMemberDirectoryRow(member: MemberDirectoryRow): MemberListItem {
   }
 }
 
+function mapMemberDetailRow(member: MemberDirectoryRow): MemberDetail {
+  return {
+    id: member.id,
+    name: getDisplayName(member),
+    email: member.work_email || '',
+    personalEmail: member.personal_email || '',
+    phone: member.primary_phone || '',
+    brand: member.brand || '',
+    title: member.assignment_name || '',
+    unit: member.unit_title || '',
+    area: member.location || '',
+    committees: member.member_committees
+      .flatMap((memberCommittee) => memberCommittee.committees ?? [])
+      .map((committee) => committee.name)
+      .map(getCommitteeTagLabel),
+    representation: [],
+  }
+}
+
 export async function fetchMemberDirectory() {
   const { data, error } = await supabase
     .from('members')
@@ -73,6 +93,7 @@ export async function fetchMemberDirectory() {
         legal_last_name,
         preferred_name,
         work_email,
+        personal_email,
         primary_phone,
         brand,
         assignment_name,
@@ -96,4 +117,37 @@ export async function fetchMemberDirectory() {
   const rows = (data ?? []) as MemberDirectoryRow[]
 
   return rows.map(mapMemberDirectoryRow)
+}
+
+export async function fetchMemberDetail(memberId: string) {
+  const { data, error } = await supabase
+    .from('members')
+    .select(
+      `
+        id,
+        legal_first_name,
+        legal_last_name,
+        preferred_name,
+        work_email,
+        personal_email,
+        primary_phone,
+        brand,
+        assignment_name,
+        unit_title,
+        location,
+        member_committees (
+          committees (
+            name
+          )
+        )
+      `,
+    )
+    .eq('id', memberId)
+    .single()
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return mapMemberDetailRow(data as MemberDirectoryRow)
 }
