@@ -10,6 +10,7 @@ type MemberCommitteeRow = {
 }
 
 type MemberDirectoryRow = {
+  id: string
   legal_first_name: string
   legal_last_name: string
   preferred_name: string | null
@@ -47,6 +48,7 @@ function getCommitteeTagLabel(committeeName: string) {
 
 function mapMemberDirectoryRow(member: MemberDirectoryRow): MemberListItem {
   return {
+    id: member.id,
     name: getDisplayName(member),
     email: member.work_email || '',
     phone: member.primary_phone || '',
@@ -66,6 +68,7 @@ export async function fetchMemberDirectory() {
     .from('members')
     .select(
       `
+        id,
         legal_first_name,
         legal_last_name,
         preferred_name,

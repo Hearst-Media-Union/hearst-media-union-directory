@@ -97,11 +97,11 @@
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseTag from '@/components/ui/BaseTag.vue'
-import type { DirectoryFilterableMember } from '@/composables/useDirectoryFilters'
+import type { MemberListItem } from '@/types/member'
 
 defineProps<{
   isOpen: boolean
-  member: DirectoryFilterableMember
+  member: MemberListItem
 }>()
 
 const emit = defineEmits<{

@@ -1,4 +1,5 @@
 export interface MemberListItem {
+  id: string
   name: string
   email: string
   phone: string
@@ -7,4 +8,9 @@ export interface MemberListItem {
   unit: string
   area: string
   committees: string[]
+}
+
+export interface MemberDetail extends MemberListItem {
+  personalEmail: string
+  representation: string[]
 }
