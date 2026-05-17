@@ -16,9 +16,31 @@
     </header>
 
     <section class="space-y-5">
+      <div
+        v-if="isLoading"
+        class="rounded-2xl border border-(--color-border-subtle) bg-white px-6 py-10 text-sm text-(--color-text-muted)"
+      >
+        Loading committees...
+      </div>
+
+      <div
+        v-else-if="errorMessage"
+        class="rounded-2xl border border-(--color-border-subtle) bg-white px-6 py-10 text-sm text-(--color-brand-red)"
+      >
+        {{ errorMessage }}
+      </div>
+
+      <div
+        v-else-if="committees.length === 0"
+        class="rounded-2xl border border-(--color-border-subtle) bg-white px-6 py-10 text-sm text-(--color-text-muted)"
+      >
+        No committees found.
+      </div>
+
       <article
         v-for="committee in committees"
-        :key="committee.name"
+        v-else
+        :key="committee.id"
         class="space-y-4 rounded-2xl bg-white"
       >
         <div class="max-w-3xl space-y-2">
@@ -50,7 +72,7 @@
             </thead>
 
             <tbody>
-              <tr v-for="member in committee.members" :key="`${committee.name}-${member.name}`">
+              <tr v-for="member in committee.members" :key="`${committee.id}-${member.id}`">
                 <td class="border-b border-(--color-border-subtle) px-4 py-3">
                   <div class="flex items-center gap-2">
                     <span class="font-semibold">
@@ -85,56 +107,28 @@
 </template>
 
 <script setup lang="ts">
-type CommitteeMember = {
-  name: string
-  brand: string
-  email: string
-  isChair?: boolean
+import { onMounted, ref } from 'vue'
+import { fetchCommittees } from '@/services/committees'
+import type { Committee } from '@/types/committee'
+
+const committees = ref<Committee[]>([])
+const isLoading = ref(true)
+const errorMessage = ref('')
+
+async function loadCommittees() {
+  isLoading.value = true
+  errorMessage.value = ''
+
+  try {
+    committees.value = await fetchCommittees()
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : 'Failed to load committees.'
+  } finally {
+    isLoading.value = false
+  }
 }
 
-type Committee = {
-  name: string
-  description: string
-  members: CommitteeMember[]
-}
-
-// Placeholder data mirrors the future member-safe directory store shape.
-// Committee membership should eventually be derived from members, not fetched separately.
-const committees: Committee[] = [
-  {
-    name: 'New Member Committee',
-    description:
-      'Helps welcome new members, answer onboarding questions, and support union orientation.',
-    members: [
-      {
-        name: 'TBD',
-        brand: 'TBD',
-        email: '',
-        isChair: true,
-      },
-      {
-        name: 'TBD',
-        brand: 'TBD',
-        email: '',
-      },
-    ],
-  },
-  {
-    name: 'Social Committee',
-    description: 'Helps organize social events and member connection opportunities.',
-    members: [
-      {
-        name: 'TBD',
-        brand: 'TBD',
-        email: '',
-        isChair: true,
-      },
-      {
-        name: 'TBD',
-        brand: 'TBD',
-        email: '',
-      },
-    ],
-  },
-]
+onMounted(() => {
+  void loadCommittees()
+})
 </script>
