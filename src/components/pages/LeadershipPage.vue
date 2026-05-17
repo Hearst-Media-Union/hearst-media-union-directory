@@ -15,13 +15,17 @@
       </p>
     </header>
 
-    <p v-if="isLoadingLeadership" class="text-sm text-(--color-brand-navy)">
-      Loading leadership contacts...
-    </p>
+    <BasePageState
+      v-if="isLoadingLeadership"
+      variant="loading"
+      message="Loading leadership contacts..."
+    />
 
-    <p v-else-if="leadershipErrorMessage" class="text-sm text-(--color-brand-red)">
-      {{ leadershipErrorMessage }}
-    </p>
+    <BasePageState
+      v-else-if="leadershipErrorMessage"
+      variant="error"
+      :message="leadershipErrorMessage"
+    />
 
     <section class="space-y-4">
       <div class="space-y-4">
@@ -173,6 +177,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import BasePageState from '@/components/ui/BasePageState.vue'
 import { fetchLeadershipAssignments } from '@/services/leadership'
 import type { LeadershipItem } from '@/types/leadership'
 

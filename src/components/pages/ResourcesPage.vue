@@ -13,26 +13,15 @@
     </header>
 
     <section class="space-y-8">
-      <div
-        v-if="isLoading"
-        class="rounded-2xl border border-(--color-border-subtle) bg-white px-6 py-10 text-sm text-(--color-text-muted)"
-      >
-        Loading resources...
-      </div>
+      <BasePageState v-if="isLoading" variant="loading" message="Loading resources..." />
 
-      <div
-        v-else-if="errorMessage"
-        class="rounded-2xl border border-(--color-border-subtle) bg-white px-6 py-10 text-sm text-(--color-brand-red)"
-      >
-        {{ errorMessage }}
-      </div>
+      <BasePageState v-else-if="errorMessage" variant="error" :message="errorMessage" />
 
-      <div
+      <BasePageState
         v-else-if="resourceCategories.length === 0"
-        class="rounded-2xl border border-(--color-border-subtle) bg-white px-6 py-10 text-sm text-(--color-text-muted)"
-      >
-        No resources found.
-      </div>
+        variant="empty"
+        message="No resources found."
+      />
 
       <article v-for="category in resourceCategories" v-else :key="category.name" class="space-y-4">
         <div class="max-w-3xl space-y-2">
@@ -97,6 +86,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import BasePageState from '@/components/ui/BasePageState.vue'
 import { fetchResources } from '@/services/resources'
 import type { ResourceCategory } from '@/types/resource'
 

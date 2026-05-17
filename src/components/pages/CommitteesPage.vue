@@ -16,26 +16,15 @@
     </header>
 
     <section class="space-y-5">
-      <div
-        v-if="isLoading"
-        class="rounded-2xl border border-(--color-border-subtle) bg-white px-6 py-10 text-sm text-(--color-text-muted)"
-      >
-        Loading committees...
-      </div>
+      <BasePageState v-if="isLoading" variant="loading" message="Loading committees..." />
 
-      <div
-        v-else-if="errorMessage"
-        class="rounded-2xl border border-(--color-border-subtle) bg-white px-6 py-10 text-sm text-(--color-brand-red)"
-      >
-        {{ errorMessage }}
-      </div>
+      <BasePageState v-else-if="errorMessage" variant="error" :message="errorMessage" />
 
-      <div
+      <BasePageState
         v-else-if="committees.length === 0"
-        class="rounded-2xl border border-(--color-border-subtle) bg-white px-6 py-10 text-sm text-(--color-text-muted)"
-      >
-        No committees found.
-      </div>
+        variant="empty"
+        message="No committees found."
+      />
 
       <article
         v-for="committee in committees"
@@ -108,6 +97,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import BasePageState from '@/components/ui/BasePageState.vue'
 import { fetchCommittees } from '@/services/committees'
 import type { Committee } from '@/types/committee'
 
