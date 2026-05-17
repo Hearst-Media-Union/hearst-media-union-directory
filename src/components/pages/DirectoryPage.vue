@@ -24,17 +24,11 @@
       <p class="font-sans text-meta text-(--color-brand-navy)">
         Showing {{ filteredMembers.length }} members
       </p>
-      <p v-if="isLoading" class="font-sans text-meta text-(--color-brand-navy)">
-        Loading members...
-      </p>
+      <BasePageState v-if="isLoading" variant="loading" message="Loading members..." />
 
-      <p v-else-if="errorMessage" class="font-sans text-meta text-(--color-brand-red)">
-        {{ errorMessage }}
-      </p>
+      <BasePageState v-else-if="errorMessage" variant="error" :message="errorMessage" />
 
-      <p v-else-if="hasNoMembers" class="font-sans text-meta text-(--color-brand-navy)">
-        No members found.
-      </p>
+      <BasePageState v-else-if="hasNoMembers" variant="empty" message="No members found." />
 
       <DirectoryDesktopTable
         v-if="canShowDirectoryResults && isDesktopDirectory"
@@ -64,6 +58,7 @@
 import { computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import DirectoryToolbar from '@/components/directory/DirectoryToolbar.vue'
+import BasePageState from '@/components/ui/BasePageState.vue'
 import DirectoryDesktopTable from '@/components/directory/DirectoryDesktopTable.vue'
 import MemberDetailModal from '@/components/directory/MemberDetailModal.vue'
 import DirectoryMobileList from '@/components/directory/DirectoryMobileList.vue'
