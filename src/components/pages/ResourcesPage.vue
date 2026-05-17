@@ -13,7 +13,28 @@
     </header>
 
     <section class="space-y-8">
-      <article v-for="category in resourceCategories" :key="category.name" class="space-y-4">
+      <div
+        v-if="isLoading"
+        class="rounded-2xl border border-(--color-border-subtle) bg-white px-6 py-10 text-sm text-(--color-text-muted)"
+      >
+        Loading resources...
+      </div>
+
+      <div
+        v-else-if="errorMessage"
+        class="rounded-2xl border border-(--color-border-subtle) bg-white px-6 py-10 text-sm text-(--color-brand-red)"
+      >
+        {{ errorMessage }}
+      </div>
+
+      <div
+        v-else-if="resourceCategories.length === 0"
+        class="rounded-2xl border border-(--color-border-subtle) bg-white px-6 py-10 text-sm text-(--color-text-muted)"
+      >
+        No resources found.
+      </div>
+
+      <article v-for="category in resourceCategories" v-else :key="category.name" class="space-y-4">
         <div class="max-w-3xl space-y-2">
           <h2 class="font-heading text-2xl font-semibold text-(--color-brand-navy)">
             {{ category.name }}
@@ -43,7 +64,7 @@
             </thead>
 
             <tbody>
-              <tr v-for="resource in category.resources" :key="resource.title">
+              <tr v-for="resource in category.resources" :key="resource.id">
                 <td class="border-b border-(--color-border-subtle) px-4 py-3 font-semibold">
                   {{ resource.title }}
                 </td>
@@ -55,7 +76,13 @@
                 </td>
 
                 <td class="border-b border-(--color-border-subtle) px-4 py-3">
-                  <a :href="resource.href" target="_blank" rel="noreferrer" class="guide-link">
+                  <a
+                    v-if="resource.url"
+                    :href="resource.url"
+                    target="_blank"
+                    rel="noreferrer"
+                    class="guide-link"
+                  >
                     Open
                   </a>
                 </td>
@@ -69,58 +96,28 @@
 </template>
 
 <script setup lang="ts">
-type ResourceItem = {
-  title: string
-  description: string
-  href: string
+import { onMounted, ref } from 'vue'
+import { fetchResources } from '@/services/resources'
+import type { ResourceCategory } from '@/types/resource'
+
+const resourceCategories = ref<ResourceCategory[]>([])
+const isLoading = ref(true)
+const errorMessage = ref('')
+
+async function loadResources() {
+  isLoading.value = true
+  errorMessage.value = ''
+
+  try {
+    resourceCategories.value = await fetchResources()
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : 'Failed to load resources.'
+  } finally {
+    isLoading.value = false
+  }
 }
 
-type ResourceCategory = {
-  name: string
-  description?: string
-  resources: ResourceItem[]
-}
-
-// Placeholder resource data.
-// Future resource content may come from Supabase or a CMS-managed resource table.
-const resourceCategories: ResourceCategory[] = [
-  {
-    name: 'Contracts',
-    description: 'Collective bargaining agreements and related contract documents.',
-    resources: [
-      {
-        title: 'Hearst WGAE Agreement 2026–2029',
-        description: 'Current Hearst Media Union collective bargaining agreement.',
-        href: '#',
-      },
-    ],
-  },
-  {
-    name: 'Membership',
-    description: 'Membership forms and onboarding information.',
-    resources: [
-      {
-        title: 'Membership Form',
-        description: 'Official WGAE membership signup form.',
-        href: '#',
-      },
-      {
-        title: 'New Member Guide',
-        description: 'A comprehensive guide for new WGAE members.',
-        href: '#',
-      },
-    ],
-  },
-  {
-    name: 'Member Support',
-    description: 'Helpful support resources and member guidance.',
-    resources: [
-      {
-        title: 'Sexual Harassment Resource Guide',
-        description: 'WGAE support and reporting resources.',
-        href: '#',
-      },
-    ],
-  },
-]
+onMounted(() => {
+  void loadResources()
+})
 </script>
