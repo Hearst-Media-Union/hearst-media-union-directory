@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
+import { deriveMemberArea } from '@/utils/deriveMemberArea'
 import type { MemberDetail, MemberListItem } from '@/types/member'
 
 type MemberCommitteeRow = {
@@ -47,6 +48,13 @@ function getCommitteeTagLabel(committeeName: string) {
   return committeeAbbreviations[committeeName] || committeeName
 }
 
+function getDerivedArea(member: MemberDirectoryRow) {
+  return deriveMemberArea({
+    brand: member.brand || '',
+    location: member.location || '',
+  })
+}
+
 function mapMemberDirectoryRow(member: MemberDirectoryRow): MemberListItem {
   return {
     id: member.id,
@@ -56,7 +64,7 @@ function mapMemberDirectoryRow(member: MemberDirectoryRow): MemberListItem {
     brand: member.brand || '',
     title: member.assignment_name || '',
     unit: member.unit_title || '',
-    area: member.location || '',
+    area: getDerivedArea(member),
     committees: member.member_committees
       .flatMap((memberCommittee) => memberCommittee.committees ?? [])
       .map((committee) => committee.name)
@@ -74,7 +82,7 @@ function mapMemberDetailRow(member: MemberDirectoryRow): MemberDetail {
     brand: member.brand || '',
     title: member.assignment_name || '',
     unit: member.unit_title || '',
-    area: member.location || '',
+    area: getDerivedArea(member),
     committees: member.member_committees
       .flatMap((memberCommittee) => memberCommittee.committees ?? [])
       .map((committee) => committee.name)
