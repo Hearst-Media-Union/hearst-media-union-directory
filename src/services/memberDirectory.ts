@@ -1,5 +1,8 @@
 import { supabase } from '@/lib/supabaseClient'
+import { fetchLeadershipAssignmentsLookup } from '@/services/leadership'
 import { deriveMemberArea } from '@/utils/deriveMemberArea'
+import { getMemberRepresentationContacts } from '@/utils/getMemberRepresentationContacts'
+import type { LeadershipItem } from '@/types/leadership'
 import type { MemberDetail, MemberListItem } from '@/types/member'
 
 type MemberCommitteeRow = {
@@ -34,6 +37,18 @@ const committeeAbbreviations: Record<string, string> = {
   'Labor Management Committee': 'LMC',
   'Area Captain': 'AC',
   'Brand Steward': 'BS',
+}
+
+let leadershipAssignmentsCache: LeadershipItem[] | null = null
+
+async function getLeadershipAssignmentsCache() {
+  if (leadershipAssignmentsCache) {
+    return leadershipAssignmentsCache
+  }
+
+  leadershipAssignmentsCache = await fetchLeadershipAssignmentsLookup()
+
+  return leadershipAssignmentsCache
 }
 
 function getDisplayName(member: MemberDirectoryRow) {
@@ -72,7 +87,16 @@ function mapMemberDirectoryRow(member: MemberDirectoryRow): MemberListItem {
   }
 }
 
-function mapMemberDetailRow(member: MemberDirectoryRow): MemberDetail {
+async function mapMemberDetailRow(member: MemberDirectoryRow): Promise<MemberDetail> {
+  const area = getDerivedArea(member)
+
+  const leadershipAssignments = await getLeadershipAssignmentsCache()
+
+  const representation = getMemberRepresentationContacts({
+    brand: member.brand || '',
+    area,
+    leadershipAssignments,
+  })
   return {
     id: member.id,
     name: getDisplayName(member),
@@ -82,12 +106,12 @@ function mapMemberDetailRow(member: MemberDirectoryRow): MemberDetail {
     brand: member.brand || '',
     title: member.assignment_name || '',
     unit: member.unit_title || '',
-    area: getDerivedArea(member),
+    area,
     committees: member.member_committees
       .flatMap((memberCommittee) => memberCommittee.committees ?? [])
       .map((committee) => committee.name)
       .map(getCommitteeTagLabel),
-    representation: [],
+    representation,
   }
 }
 
@@ -157,5 +181,5 @@ export async function fetchMemberDetail(memberId: string) {
     throw new Error(error.message)
   }
 
-  return mapMemberDetailRow(data as MemberDirectoryRow)
+  return await mapMemberDetailRow(data as MemberDirectoryRow)
 }

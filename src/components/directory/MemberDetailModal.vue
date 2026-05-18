@@ -104,6 +104,31 @@
 
         <p v-else class="font-sans text-table text-(--color-app-text)">None listed</p>
       </section>
+      <section class="space-y-3">
+        <h3 class="font-label text-xs tracking-wide uppercase text-(--color-brand-navy)">
+          Representation
+        </h3>
+
+        <dl v-if="member.representation.length > 0" class="grid gap-3 font-sans text-table">
+          <div v-for="contact in member.representation" :key="contact.id">
+            <dt class="text-meta text-(--color-app-text)">
+              {{ contact.label }}
+            </dt>
+
+            <dd class="font-medium text-(--color-brand-navy)">
+              <a v-if="contact.email" :href="`mailto:${contact.email}`" class="guide-link">
+                {{ contact.name }}
+              </a>
+
+              <span v-else>
+                {{ contact.name }}
+              </span>
+            </dd>
+          </div>
+        </dl>
+
+        <p v-else class="font-sans text-table text-(--color-app-text)">None listed</p>
+      </section>
     </div>
   </BaseModal>
 </template>

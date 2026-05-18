@@ -10,7 +10,14 @@ export interface MemberListItem {
   committees: string[]
 }
 
+export interface MemberRepresentationContact {
+  id: string
+  label: string
+  name: string
+  email: string
+}
+
 export interface MemberDetail extends MemberListItem {
   personalEmail: string
-  representation: string[]
+  representation: MemberRepresentationContact[]
 }
