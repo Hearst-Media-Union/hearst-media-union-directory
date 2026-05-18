@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
+import { deriveMemberArea } from '@/utils/deriveMemberArea'
 import type { LeadershipItem, LeadershipRole, LeadershipScopeType } from '@/types/leadership'
 
 type LeadershipMemberRow = {
@@ -27,6 +28,17 @@ function getDisplayName(member: LeadershipMemberRow) {
   return `${member.legal_first_name} ${member.legal_last_name}`
 }
 
+function getLeadershipScopeValue(row: LeadershipAssignmentRow, member: LeadershipMemberRow) {
+  if (row.scope_type !== 'location') {
+    return row.scope_value
+  }
+
+  return deriveMemberArea({
+    brand: member.brand || '',
+    location: row.scope_value,
+  })
+}
+
 export function mapLeadershipAssignmentRow(row: LeadershipAssignmentRow): LeadershipItem | null {
   const member = Array.isArray(row.members) ? row.members[0] : row.members
 
@@ -39,7 +51,7 @@ export function mapLeadershipAssignmentRow(row: LeadershipAssignmentRow): Leader
     name: getDisplayName(member),
     role: row.leadership_role,
     scopeType: row.scope_type,
-    scopeValue: row.scope_value,
+    scopeValue: getLeadershipScopeValue(row, member),
     brand: member.brand || '',
     area: member.location || '',
     unit: member.unit_title || '',
