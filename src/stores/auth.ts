@@ -76,26 +76,14 @@ export const useAuthStore = defineStore('auth', () => {
       return
     }
 
-    const matchingMember = await fetchActiveMemberProfileMatchByEmail(user.value.email)
-
-    if (!matchingMember) {
-      profile.value = null
-      await supabase.auth.signOut()
-
-      throw new Error('No active directory member was found for this email address.')
-    }
-
     const { data: createdProfile, error: createProfileError } = await supabase
-      .from('user_profiles')
-      .insert({
-        auth_user_id: user.value.id,
-        member_id: matchingMember.id,
-        role: 'member',
-      })
-      .select('id, auth_user_id, member_id, role')
+      .rpc('create_current_user_profile')
       .single()
 
     if (createProfileError) {
+      profile.value = null
+      await supabase.auth.signOut()
+
       throw new Error(createProfileError.message)
     }
 

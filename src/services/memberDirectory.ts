@@ -195,7 +195,7 @@ export async function fetchActiveMemberProfileMatchByEmail(email: string) {
     .from('members')
     .select('id')
     .eq('is_active', true)
-    .or(`work_email.eq.${normalizedEmail},personal_email.eq.${normalizedEmail}`)
+    .or(`work_email.ilike.${normalizedEmail},personal_email.ilike.${normalizedEmail}`)
     .maybeSingle()
 
   if (error) {
