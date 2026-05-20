@@ -5,6 +5,10 @@ import { getMemberRepresentationContacts } from '@/utils/getMemberRepresentation
 import type { LeadershipItem } from '@/types/leadership'
 import type { MemberDetail, MemberListItem } from '@/types/member'
 
+type MemberProfileMatchRow = {
+  id: string
+}
+
 type MemberCommitteeRow = {
   committees:
     | {
@@ -182,4 +186,21 @@ export async function fetchMemberDetail(memberId: string) {
   }
 
   return await mapMemberDetailRow(data as MemberDirectoryRow)
+}
+
+export async function fetchActiveMemberProfileMatchByEmail(email: string) {
+  const normalizedEmail = email.trim().toLowerCase()
+
+  const { data, error } = await supabase
+    .from('members')
+    .select('id')
+    .eq('is_active', true)
+    .or(`work_email.eq.${normalizedEmail},personal_email.eq.${normalizedEmail}`)
+    .maybeSingle()
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return data as MemberProfileMatchRow | null
 }

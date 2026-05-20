@@ -1,6 +1,7 @@
 import { h } from 'vue'
 import type { Component } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import LandingPage from '@/components/pages/LandingPage.vue'
 import NewMembersPage from '@/components/pages/NewMembersPage.vue'
 import LeadershipPage from '@/components/pages/LeadershipPage.vue'
@@ -96,10 +97,9 @@ const router = createRouter({
 })
 
 router.beforeEach((to) => {
-  const isAuthenticated = true
-  const isAdmin = false
+  const authStore = useAuthStore()
 
-  if (to.meta.requiresAuth && !isAuthenticated) {
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return {
       path: '/',
       query: {
@@ -108,7 +108,7 @@ router.beforeEach((to) => {
     }
   }
 
-  if (to.meta.requiresAdmin && !isAdmin) {
+  if (to.meta.requiresAdmin && !authStore.isAdmin) {
     return {
       path: '/',
       query: {
