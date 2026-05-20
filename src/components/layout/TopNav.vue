@@ -25,6 +25,15 @@
           </div>
 
           <button
+            v-if="authStore.isAuthenticated"
+            class="ml-6 hidden cursor-pointer text-sm hover:underline md:block"
+            type="button"
+            @click="signOut"
+          >
+            Log out
+          </button>
+
+          <button
             class="ml-4 flex cursor-pointer items-center justify-center md:hidden"
             type="button"
             @click="isOpen = true"
@@ -61,13 +70,22 @@
       >
         {{ link.label }}
       </RouterLink>
+      <button
+        v-if="authStore.isAuthenticated"
+        class="block py-4 text-left text-(--color-app-text)"
+        type="button"
+        @click="signOut"
+      >
+        Log out
+      </button>
     </div>
   </BaseDrawer>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 import PageContainer from '@/components/layout/PageContainer.vue'
 import BaseDrawer from '@/components/ui/BaseDrawer.vue'
@@ -77,11 +95,10 @@ type NavLink = {
   to: string
 }
 
-const isOpen = ref(false)
+const router = useRouter()
+const authStore = useAuthStore()
 
-// Temporary placeholder until real auth state is wired.
-// Keep this aligned with the router guard during local testing.
-const isAuthenticated = true
+const isOpen = ref(false)
 
 const publicNavLinks: NavLink[] = [
   {
@@ -126,8 +143,14 @@ const authenticatedNavLinks: NavLink[] = [
 ]
 
 const visibleNavLinks = computed(() => {
-  return isAuthenticated ? authenticatedNavLinks : publicNavLinks
+  return authStore.isAuthenticated ? authenticatedNavLinks : publicNavLinks
 })
+
+async function signOut() {
+  await authStore.signOut()
+  closeDrawer()
+  await router.push('/')
+}
 
 function closeDrawer() {
   isOpen.value = false
