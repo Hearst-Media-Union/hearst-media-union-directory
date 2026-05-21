@@ -64,6 +64,12 @@
         />
       </label>
 
+      <ul v-if="authMode === 'signup'" class="space-y-1 text-xs text-(--color-app-text-muted)">
+        <li>Password must be at least 8 characters.</li>
+        <li>Password must include at least one letter.</li>
+        <li>Password must include at least one number.</li>
+      </ul>
+
       <p v-if="errorMessage" class="text-sm text-(--color-brand-red)">
         {{ errorMessage }}
       </p>
@@ -76,7 +82,7 @@
         class="w-full justify-center"
         font="label"
         type="submit"
-        :disabled="authStore.isLoading"
+        :disabled="isSubmitDisabled"
       >
         {{ submitLabel }}
       </BaseButton>
@@ -104,7 +110,19 @@ const password = ref('')
 const errorMessage = ref('')
 const successMessage = ref('')
 
+const isPasswordValid = computed(() => {
+  return password.value.length >= 8 && /[A-Za-z]/.test(password.value) && /\d/.test(password.value)
+})
+
+const isSubmitDisabled = computed(() => {
+  return authStore.isLoading || (authMode.value === 'signup' && !isPasswordValid.value)
+})
+
 const submitLabel = computed(() => {
+  if (authStore.isLoading) {
+    return authMode.value === 'login' ? 'Logging in...' : 'Creating account...'
+  }
+
   return authMode.value === 'login' ? 'Log in' : 'Create account'
 })
 
@@ -126,9 +144,17 @@ async function submitAuthForm() {
       return
     }
 
+    if (!isPasswordValid.value) {
+      errorMessage.value = 'Password does not meet the requirements.'
+
+      return
+    }
+
     await authStore.signUp(email.value, password.value)
 
-    successMessage.value = 'Account created. Check your email if confirmation is required.'
+    password.value = ''
+    authMode.value = 'login'
+    successMessage.value = 'Account created. Check your email to confirm your account, then log in.'
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'Something went wrong.'
   }
