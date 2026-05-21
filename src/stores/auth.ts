@@ -2,7 +2,6 @@ import { computed, ref } from 'vue'
 import type { Session, User } from '@supabase/supabase-js'
 import { defineStore } from 'pinia'
 import { supabase } from '@/lib/supabaseClient'
-import { fetchActiveMemberProfileMatchByEmail } from '@/services/memberDirectory'
 
 export type UserProfileRole = 'member' | 'admin'
 
