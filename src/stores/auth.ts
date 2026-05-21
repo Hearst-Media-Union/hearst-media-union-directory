@@ -13,6 +13,11 @@ export type UserProfile = {
   role: UserProfileRole
 }
 
+type MemberAuthStatus = {
+  member_id: string
+  has_profile: boolean
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const session = ref<Session | null>(null)
   const user = ref<User | null>(null)
@@ -109,12 +114,30 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
 
     const normalizedEmail = email.trim().toLowerCase()
-    const matchingMember = await fetchActiveMemberProfileMatchByEmail(normalizedEmail)
+    const { data: memberAuthStatus, error: memberAuthStatusError } = await supabase
+      .rpc('get_member_auth_status_by_email', {
+        input_email: normalizedEmail,
+      })
+      .maybeSingle()
 
-    if (!matchingMember) {
+    if (memberAuthStatusError) {
+      isLoading.value = false
+
+      throw new Error(memberAuthStatusError.message)
+    }
+
+    if (!memberAuthStatus) {
       isLoading.value = false
 
       throw new Error('Only active directory members can create an account.')
+    }
+
+    const typedMemberAuthStatus = memberAuthStatus as MemberAuthStatus
+
+    if (typedMemberAuthStatus.has_profile) {
+      isLoading.value = false
+
+      throw new Error('An account already exists for this member. Try logging in instead.')
     }
 
     const { error } = await supabase.auth.signUp({
