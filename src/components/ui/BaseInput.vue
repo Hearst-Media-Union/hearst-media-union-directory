@@ -6,7 +6,7 @@
 
     <!-- Input -->
     <input
-      v-if="type === 'text'"
+      v-if="type === 'text' || type === 'email' || type === 'password'"
       :id="id"
       :class="[baseFieldClasses, 'min-h-10']"
       :placeholder="placeholder"
@@ -47,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-type InputType = 'text' | 'textarea' | 'select'
+type InputType = 'text' | 'email' | 'password' | 'textarea' | 'select'
 
 type SelectOption = {
   label: string

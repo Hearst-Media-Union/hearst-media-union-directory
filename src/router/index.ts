@@ -1,6 +1,7 @@
 import { h } from 'vue'
 import type { Component } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import LandingPage from '@/components/pages/LandingPage.vue'
 import NewMembersPage from '@/components/pages/NewMembersPage.vue'
 import LeadershipPage from '@/components/pages/LeadershipPage.vue'
@@ -9,6 +10,7 @@ import ResourcesPage from '@/components/pages/ResourcesPage.vue'
 import DirectoryPage from '@/components/pages/DirectoryPage.vue'
 import HelpPage from '@/components/pages/HelpPage.vue'
 import ContactPage from '@/components/pages/ContactPage.vue'
+import AuthConfirmedPage from '@/components/pages/AuthConfirmedPage.vue'
 
 const AdminPage: Component = {
   render() {
@@ -23,6 +25,14 @@ const router = createRouter({
       path: '/',
       name: 'landing',
       component: LandingPage,
+      meta: {
+        requiresAuth: false,
+      },
+    },
+    {
+      path: '/auth/confirmed',
+      name: 'auth-confirmed',
+      component: AuthConfirmedPage,
       meta: {
         requiresAuth: false,
       },
@@ -96,10 +106,9 @@ const router = createRouter({
 })
 
 router.beforeEach((to) => {
-  const isAuthenticated = true
-  const isAdmin = false
+  const authStore = useAuthStore()
 
-  if (to.meta.requiresAuth && !isAuthenticated) {
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return {
       path: '/',
       query: {
@@ -108,7 +117,7 @@ router.beforeEach((to) => {
     }
   }
 
-  if (to.meta.requiresAdmin && !isAdmin) {
+  if (to.meta.requiresAdmin && !authStore.isAdmin) {
     return {
       path: '/',
       query: {
