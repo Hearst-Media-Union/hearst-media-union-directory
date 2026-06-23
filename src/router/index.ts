@@ -10,6 +10,7 @@ import ResourcesPage from '@/components/pages/ResourcesPage.vue'
 import DirectoryPage from '@/components/pages/DirectoryPage.vue'
 import HelpPage from '@/components/pages/HelpPage.vue'
 import ContactPage from '@/components/pages/ContactPage.vue'
+import AuthConfirmedPage from '@/components/pages/AuthConfirmedPage.vue'
 
 const AdminPage: Component = {
   render() {
@@ -24,6 +25,14 @@ const router = createRouter({
       path: '/',
       name: 'landing',
       component: LandingPage,
+      meta: {
+        requiresAuth: false,
+      },
+    },
+    {
+      path: '/auth/confirmed',
+      name: 'auth-confirmed',
+      component: AuthConfirmedPage,
       meta: {
         requiresAuth: false,
       },
