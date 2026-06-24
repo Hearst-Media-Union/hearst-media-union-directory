@@ -10,6 +10,7 @@ import HelpPage from '@/components/pages/HelpPage.vue'
 import ContactPage from '@/components/pages/ContactPage.vue'
 import AuthConfirmedPage from '@/components/pages/AuthConfirmedPage.vue'
 import AdminDashboardPage from '@/components/pages/AdminDashboardPage.vue'
+import AdminRepresentationPage from '@/components/pages/AdminRepresentationPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -90,6 +91,15 @@ const router = createRouter({
       path: '/admin',
       name: 'admin',
       component: AdminDashboardPage,
+      meta: {
+        requiresAuth: true,
+        requiresAdmin: true,
+      },
+    },
+    {
+      path: '/admin/representation',
+      name: 'admin-representation',
+      component: AdminRepresentationPage,
       meta: {
         requiresAuth: true,
         requiresAdmin: true,
