@@ -56,12 +56,24 @@
 
       <label class="flex flex-col gap-1 text-sm font-medium text-(--color-app-text)">
         Password
-        <BaseInput
-          v-model="password"
-          type="password"
-          :autocomplete="authMode === 'login' ? 'current-password' : 'new-password'"
-          required
-        />
+        <div class="flex gap-2">
+          <BaseInput
+            v-model="password"
+            class="flex-1"
+            :type="passwordInputType"
+            :autocomplete="authMode === 'login' ? 'current-password' : 'new-password'"
+            required
+          />
+
+          <button
+            class="cursor-pointer rounded border border-(--color-border) px-3 text-sm font-medium text-(--color-app-text-muted)"
+            type="button"
+            :aria-label="passwordToggleLabel"
+            @click="togglePasswordVisibility"
+          >
+            {{ passwordToggleLabel }}
+          </button>
+        </div>
       </label>
 
       <ul v-if="authMode === 'signup'" class="space-y-1 text-xs text-(--color-app-text-muted)">
@@ -109,6 +121,7 @@ const email = ref('')
 const password = ref('')
 const errorMessage = ref('')
 const successMessage = ref('')
+const isPasswordVisible = ref(false)
 
 const isPasswordValid = computed(() => {
   return password.value.length >= 8 && /[A-Za-z]/.test(password.value) && /\d/.test(password.value)
@@ -126,10 +139,22 @@ const submitLabel = computed(() => {
   return authMode.value === 'login' ? 'Log in' : 'Create account'
 })
 
+const passwordInputType = computed(() => {
+  return isPasswordVisible.value ? 'text' : 'password'
+})
+
+const passwordToggleLabel = computed(() => {
+  return isPasswordVisible.value ? 'Hide' : 'Show'
+})
+
 function setAuthMode(nextAuthMode: AuthMode) {
   authMode.value = nextAuthMode
   errorMessage.value = ''
   successMessage.value = ''
+}
+
+function togglePasswordVisibility() {
+  isPasswordVisible.value = !isPasswordVisible.value
 }
 
 async function submitAuthForm() {
