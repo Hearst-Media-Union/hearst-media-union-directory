@@ -8,6 +8,7 @@
     <input
       v-if="type === 'text' || type === 'email' || type === 'password'"
       :id="id"
+      :type="type"
       :class="[baseFieldClasses, 'min-h-10']"
       :placeholder="placeholder"
       :value="modelValue"
