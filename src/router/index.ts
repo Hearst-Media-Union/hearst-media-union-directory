@@ -1,5 +1,3 @@
-import { h } from 'vue'
-import type { Component } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import LandingPage from '@/components/pages/LandingPage.vue'
@@ -11,12 +9,7 @@ import DirectoryPage from '@/components/pages/DirectoryPage.vue'
 import HelpPage from '@/components/pages/HelpPage.vue'
 import ContactPage from '@/components/pages/ContactPage.vue'
 import AuthConfirmedPage from '@/components/pages/AuthConfirmedPage.vue'
-
-const AdminPage: Component = {
-  render() {
-    return h('div', 'Admin Dashboard Page')
-  },
-}
+import AdminDashboardPage from '@/components/pages/AdminDashboardPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -96,7 +89,7 @@ const router = createRouter({
     {
       path: '/admin',
       name: 'admin',
-      component: AdminPage,
+      component: AdminDashboardPage,
       meta: {
         requiresAuth: true,
         requiresAdmin: true,
