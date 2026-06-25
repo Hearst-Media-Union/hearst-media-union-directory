@@ -10,6 +10,61 @@
       </p>
     </section>
 
+    <section class="rounded-md bg-slate-50 p-4">
+      <form class="grid gap-4 md:grid-cols-[1fr_1fr_auto]" @submit.prevent="addAssignment">
+        <div class="md:col-span-3">
+          <AdminMemberSearch v-model:selected-member-id="selectedMemberId" :members="members" />
+        </div>
+
+        <label class="space-y-1 text-sm">
+          <span class="font-medium text-(--color-brand-navy)">Role</span>
+          <select
+            v-model="selectedRole"
+            class="h-10 w-full rounded border border-(--color-border) bg-white px-3 text-sm"
+            @change="selectedScopeValue = ''"
+          >
+            <option value="area_captain">Area Captain</option>
+            <option value="shop_steward">Brand Steward</option>
+          </select>
+        </label>
+
+        <label class="space-y-1 text-sm">
+          <span class="font-medium text-(--color-brand-navy)">Assignment</span>
+          <select
+            v-model="selectedScopeValue"
+            class="h-10 w-full rounded border border-(--color-border) bg-white px-3 text-sm"
+          >
+            <option value="">Select assignment</option>
+            <option
+              v-for="assignmentValue in assignmentOptions"
+              :key="assignmentValue"
+              :value="assignmentValue"
+            >
+              {{ assignmentValue }}
+            </option>
+          </select>
+        </label>
+
+        <button
+          type="submit"
+          class="h-10 self-end rounded bg-(--color-brand-red) px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-300"
+          :disabled="!canSubmitAssignment"
+        >
+          {{ isSubmittingAssignment ? 'Adding…' : 'Add' }}
+        </button>
+        <p
+          v-if="selectedAssignmentAlreadyExists"
+          class="text-sm text-(--color-brand-red) md:col-span-3"
+        >
+          This representation assignment already exists.
+        </p>
+      </form>
+    </section>
+
+    <section v-if="successMessage" class="text-sm text-slate-700">
+      {{ successMessage }}
+    </section>
+
     <section v-if="isLoading" class="text-sm text-slate-600">
       Loading representation assignments…
     </section>
@@ -46,9 +101,24 @@
             </h3>
 
             <ul class="space-y-2">
-              <li v-for="assignment in group.assignments" :key="assignment.id">
-                <p class="text-sm font-medium text-slate-800">{{ assignment.name }}</p>
-                <p class="text-xs text-slate-500">{{ assignment.email || 'No email listed' }}</p>
+              <li
+                v-for="assignment in group.assignments"
+                :key="assignment.id"
+                class="flex items-start justify-between gap-3"
+              >
+                <div>
+                  <p class="text-sm font-medium text-slate-800">{{ assignment.name }}</p>
+                  <p class="text-xs text-slate-500">{{ assignment.email || 'No email listed' }}</p>
+                </div>
+
+                <button
+                  type="button"
+                  class="text-xs font-medium text-(--color-brand-red) hover:underline hover:cursor-pointerdisabled:cursor-not-allowed disabled:text-slate-400"
+                  :disabled="deletingAssignmentId === assignment.id"
+                  @click="removeAssignment(assignment.id)"
+                >
+                  {{ deletingAssignmentId === assignment.id ? 'Removing…' : 'Remove' }}
+                </button>
               </li>
             </ul>
           </article>
@@ -78,9 +148,24 @@
             </h3>
 
             <ul class="space-y-2">
-              <li v-for="assignment in group.assignments" :key="assignment.id">
-                <p class="text-sm font-medium text-slate-800">{{ assignment.name }}</p>
-                <p class="text-xs text-slate-500">{{ assignment.email || 'No email listed' }}</p>
+              <li
+                v-for="assignment in group.assignments"
+                :key="assignment.id"
+                class="flex items-start justify-between gap-3"
+              >
+                <div>
+                  <p class="text-sm font-medium text-slate-800">{{ assignment.name }}</p>
+                  <p class="text-xs text-slate-500">{{ assignment.email || 'No email listed' }}</p>
+                </div>
+
+                <button
+                  type="button"
+                  class="text-xs font-medium text-(--color-brand-red) hover:underline hover:cursor-pointer disabled:cursor-not-allowed disabled:text-slate-400"
+                  :disabled="deletingAssignmentId === assignment.id"
+                  @click="removeAssignment(assignment.id)"
+                >
+                  {{ deletingAssignmentId === assignment.id ? 'Removing…' : 'Remove' }}
+                </button>
               </li>
             </ul>
           </article>
@@ -92,8 +177,17 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { fetchLeadershipAssignments } from '@/services/leadership'
-import type { LeadershipItem } from '@/types/leadership'
+import {
+  createLeadershipAssignment,
+  deleteLeadershipAssignment,
+  fetchLeadershipAssignments,
+} from '@/services/leadership'
+import { fetchMemberDirectory } from '@/services/memberDirectory'
+import type { LeadershipItem, LeadershipRole, LeadershipScopeType } from '@/types/leadership'
+import type { MemberListItem } from '@/types/member'
+import AdminMemberSearch from '@/components/admin/AdminMemberSearch.vue'
+
+// TODO: Refactor?
 
 type AssignmentGroup = {
   scopeValue: string
@@ -103,6 +197,45 @@ type AssignmentGroup = {
 const assignments = ref<LeadershipItem[]>([])
 const isLoading = ref(false)
 const errorMessage = ref<string | null>(null)
+const successMessage = ref<string | null>(null)
+const deletingAssignmentId = ref<string | null>(null)
+const members = ref<MemberListItem[]>([])
+const selectedMemberId = ref('')
+const selectedRole = ref<LeadershipRole>('area_captain')
+const selectedScopeValue = ref('')
+const isSubmittingAssignment = ref(false)
+
+const assignmentOptions = computed(() => {
+  const values =
+    selectedRole.value === 'area_captain'
+      ? members.value.map((member) => member.area)
+      : members.value.map((member) => member.brand)
+
+  return [...new Set(values.filter((value) => value.length > 0))].sort((firstValue, secondValue) =>
+    firstValue.localeCompare(secondValue),
+  )
+})
+
+const selectedScopeType = computed<LeadershipScopeType>(() =>
+  selectedRole.value === 'area_captain' ? 'location' : 'brand',
+)
+
+const selectedAssignmentAlreadyExists = computed(() =>
+  assignments.value.some(
+    (assignment) =>
+      assignment.memberId === selectedMemberId.value &&
+      assignment.role === selectedRole.value &&
+      assignment.scopeValue === selectedScopeValue.value,
+  ),
+)
+
+const canSubmitAssignment = computed(
+  () =>
+    selectedMemberId.value.length > 0 &&
+    selectedScopeValue.value.length > 0 &&
+    !selectedAssignmentAlreadyExists.value &&
+    !isSubmittingAssignment.value,
+)
 
 const areaCaptainGroups = computed(() =>
   groupAssignmentsByScopeValue(
@@ -137,6 +270,59 @@ function groupAssignmentsByScopeValue(nextAssignments: LeadershipItem[]): Assign
     .sort((firstGroup, secondGroup) => firstGroup.scopeValue.localeCompare(secondGroup.scopeValue))
 }
 
+async function removeAssignment(assignmentId: string) {
+  deletingAssignmentId.value = assignmentId
+  errorMessage.value = null
+  successMessage.value = null
+
+  try {
+    await deleteLeadershipAssignment(assignmentId)
+    assignments.value = assignments.value.filter((assignment) => assignment.id !== assignmentId)
+    successMessage.value = 'Representation assignment removed.'
+  } catch {
+    errorMessage.value = 'Unable to remove representation assignment.'
+  } finally {
+    deletingAssignmentId.value = null
+  }
+}
+
+async function loadMembers() {
+  try {
+    members.value = await fetchMemberDirectory()
+  } catch {
+    errorMessage.value = 'Unable to load members for representation assignment.'
+  }
+}
+
+async function addAssignment() {
+  if (!canSubmitAssignment.value) {
+    return
+  }
+
+  isSubmittingAssignment.value = true
+  errorMessage.value = null
+  successMessage.value = null
+
+  try {
+    await createLeadershipAssignment({
+      memberId: selectedMemberId.value,
+      role: selectedRole.value,
+      scopeType: selectedScopeType.value,
+      scopeValue: selectedScopeValue.value,
+    })
+
+    selectedMemberId.value = ''
+    selectedScopeValue.value = ''
+
+    await loadAssignments()
+    successMessage.value = 'Representation assignment added.'
+  } catch {
+    errorMessage.value = 'Unable to add representation assignment.'
+  } finally {
+    isSubmittingAssignment.value = false
+  }
+}
+
 async function loadAssignments() {
   isLoading.value = true
   errorMessage.value = null
@@ -151,6 +337,7 @@ async function loadAssignments() {
 }
 
 onMounted(() => {
+  void loadMembers()
   void loadAssignments()
 })
 </script>

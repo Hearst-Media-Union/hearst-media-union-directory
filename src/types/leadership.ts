@@ -4,6 +4,7 @@ export type LeadershipScopeType = 'brand' | 'location' | 'unit_title'
 
 export interface LeadershipItem {
   id: string
+  memberId: string
   name: string
   role: LeadershipRole
   scopeType: LeadershipScopeType

@@ -3,6 +3,7 @@ import { deriveMemberArea } from '@/utils/deriveMemberArea'
 import type { LeadershipItem, LeadershipRole, LeadershipScopeType } from '@/types/leadership'
 
 type LeadershipMemberRow = {
+  id: string
   legal_first_name: string
   legal_last_name: string
   preferred_name: string | null
@@ -18,6 +19,13 @@ type LeadershipAssignmentRow = {
   scope_type: LeadershipScopeType
   scope_value: string
   members: LeadershipMemberRow | LeadershipMemberRow[] | null
+}
+
+type CreateLeadershipAssignmentInput = {
+  memberId: string
+  role: LeadershipRole
+  scopeType: LeadershipScopeType
+  scopeValue: string
 }
 
 function getDisplayName(member: LeadershipMemberRow) {
@@ -48,6 +56,7 @@ export function mapLeadershipAssignmentRow(row: LeadershipAssignmentRow): Leader
 
   return {
     id: row.id,
+    memberId: member.id,
     name: getDisplayName(member),
     role: row.leadership_role,
     scopeType: row.scope_type,
@@ -67,6 +76,7 @@ export async function fetchLeadershipAssignmentsLookup() {
         scope_type,
         scope_value,
         members (
+          id,
           legal_first_name,
           legal_last_name,
           preferred_name,
@@ -99,6 +109,7 @@ export async function fetchLeadershipAssignments() {
         scope_type,
         scope_value,
         members (
+          id,
           legal_first_name,
           legal_last_name,
           preferred_name,
@@ -120,4 +131,30 @@ export async function fetchLeadershipAssignments() {
   return rows
     .map(mapLeadershipAssignmentRow)
     .filter((item): item is LeadershipItem => item !== null)
+}
+
+export async function createLeadershipAssignment({
+  memberId,
+  role,
+  scopeType,
+  scopeValue,
+}: CreateLeadershipAssignmentInput) {
+  const { error } = await supabase.from('leadership_assignments').insert({
+    member_id: memberId,
+    leadership_role: role,
+    scope_type: scopeType,
+    scope_value: scopeValue,
+  })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+}
+
+export async function deleteLeadershipAssignment(assignmentId: string) {
+  const { error } = await supabase.from('leadership_assignments').delete().eq('id', assignmentId)
+
+  if (error) {
+    throw new Error(error.message)
+  }
 }
