@@ -10,6 +10,7 @@
       </p>
     </section>
     <AdminCommitteeForm
+      :committees="committees"
       :is-submitting-committee="isSubmittingCommittee"
       @create-committee="addCommittee"
     />

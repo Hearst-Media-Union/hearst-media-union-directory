@@ -34,15 +34,19 @@
       >
         {{ isSubmittingCommittee ? 'Creating…' : 'Create' }}
       </button>
+      <p v-if="committeeNameAlreadyExists" class="text-sm text-(--color-brand-red) md:col-span-3">
+        This committee already exists.
+      </p>
     </form>
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { CommitteePayload } from '@/types/committee'
+import type { Committee, CommitteePayload } from '@/types/committee'
 
 const props = defineProps<{
+  committees: Committee[]
   isSubmittingCommittee: boolean
 }>()
 
@@ -53,8 +57,17 @@ const emit = defineEmits<{
 const committeeName = ref('')
 const committeeDescription = ref('')
 
+const committeeNameAlreadyExists = computed(() =>
+  props.committees.some(
+    (committee) => committee.name.trim().toLowerCase() === committeeName.value.trim().toLowerCase(),
+  ),
+)
+
 const canSubmitCommittee = computed(
-  () => committeeName.value.trim().length > 0 && !props.isSubmittingCommittee,
+  () =>
+    committeeName.value.trim().length > 0 &&
+    !committeeNameAlreadyExists.value &&
+    !props.isSubmittingCommittee,
 )
 
 function submitCommittee() {
