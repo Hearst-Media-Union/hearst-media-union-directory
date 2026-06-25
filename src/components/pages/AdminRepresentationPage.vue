@@ -11,19 +11,10 @@
     </section>
 
     <section class="rounded-md bg-slate-50 p-4">
-      <form class="grid gap-4 md:grid-cols-[1fr_1fr_1fr_auto]" @submit.prevent="addAssignment">
-        <label class="space-y-1 text-sm">
-          <span class="font-medium text-(--color-brand-navy)">Member</span>
-          <select
-            v-model="selectedMemberId"
-            class="h-10 w-full rounded border border-(--color-border) bg-white px-3 text-sm"
-          >
-            <option value="">Select member</option>
-            <option v-for="member in members" :key="member.id" :value="member.id">
-              {{ member.name }}
-            </option>
-          </select>
-        </label>
+      <form class="grid gap-4 md:grid-cols-[1fr_1fr_auto]" @submit.prevent="addAssignment">
+        <div class="md:col-span-3">
+          <AdminMemberSearch v-model:selected-member-id="selectedMemberId" :members="members" />
+        </div>
 
         <label class="space-y-1 text-sm">
           <span class="font-medium text-(--color-brand-navy)">Role</span>
@@ -184,6 +175,7 @@ import {
 import { fetchMemberDirectory } from '@/services/memberDirectory'
 import type { LeadershipItem, LeadershipRole, LeadershipScopeType } from '@/types/leadership'
 import type { MemberListItem } from '@/types/member'
+import AdminMemberSearch from '@/components/admin/AdminMemberSearch.vue'
 
 // TODO: Refactor?
 
