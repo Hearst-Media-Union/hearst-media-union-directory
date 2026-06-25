@@ -78,99 +78,23 @@
     </section>
 
     <section v-else class="grid gap-8 lg:grid-cols-2">
-      <section class="space-y-4">
-        <div>
-          <h2 class="font-condensed text-2xl font-semibold text-(--color-brand-navy)">
-            Area Captains
-          </h2>
-          <p class="text-sm text-slate-600">Grouped by represented area.</p>
-        </div>
+      <RepresentationAssignmentGroup
+        title="Area Captains"
+        description="Grouped by represented area."
+        empty-message="No Area Captains listed."
+        :groups="areaCaptainGroups"
+        :deleting-assignment-id="deletingAssignmentId"
+        @remove-assignment="removeAssignment"
+      />
 
-        <div v-if="areaCaptainGroups.length === 0" class="text-sm text-slate-600">
-          No Area Captains listed.
-        </div>
-
-        <div v-else class="space-y-4">
-          <article
-            v-for="group in areaCaptainGroups"
-            :key="group.scopeValue"
-            class="space-y-3 rounded-md bg-slate-50 px-4 py-3"
-          >
-            <h3 class="font-condensed text-lg font-semibold text-(--color-brand-navy)">
-              {{ group.scopeValue }}
-            </h3>
-
-            <ul class="space-y-2">
-              <li
-                v-for="assignment in group.assignments"
-                :key="assignment.id"
-                class="flex items-start justify-between gap-3"
-              >
-                <div>
-                  <p class="text-sm font-medium text-slate-800">{{ assignment.name }}</p>
-                  <p class="text-xs text-slate-500">{{ assignment.email || 'No email listed' }}</p>
-                </div>
-
-                <button
-                  type="button"
-                  class="text-xs font-medium text-(--color-brand-red) hover:underline hover:cursor-pointerdisabled:cursor-not-allowed disabled:text-slate-400"
-                  :disabled="deletingAssignmentId === assignment.id"
-                  @click="removeAssignment(assignment.id)"
-                >
-                  {{ deletingAssignmentId === assignment.id ? 'Removing…' : 'Remove' }}
-                </button>
-              </li>
-            </ul>
-          </article>
-        </div>
-      </section>
-
-      <section class="space-y-4">
-        <div>
-          <h2 class="font-condensed text-2xl font-semibold text-(--color-brand-navy)">
-            Brand Stewards
-          </h2>
-          <p class="text-sm text-slate-600">Grouped by represented brand.</p>
-        </div>
-
-        <div v-if="brandStewardGroups.length === 0" class="text-sm text-slate-600">
-          No Brand Stewards listed.
-        </div>
-
-        <div v-else class="space-y-4">
-          <article
-            v-for="group in brandStewardGroups"
-            :key="group.scopeValue"
-            class="space-y-3 rounded-md bg-slate-50 px-4 py-3"
-          >
-            <h3 class="font-condensed text-lg font-semibold text-(--color-brand-navy)">
-              {{ group.scopeValue }}
-            </h3>
-
-            <ul class="space-y-2">
-              <li
-                v-for="assignment in group.assignments"
-                :key="assignment.id"
-                class="flex items-start justify-between gap-3"
-              >
-                <div>
-                  <p class="text-sm font-medium text-slate-800">{{ assignment.name }}</p>
-                  <p class="text-xs text-slate-500">{{ assignment.email || 'No email listed' }}</p>
-                </div>
-
-                <button
-                  type="button"
-                  class="text-xs font-medium text-(--color-brand-red) hover:underline hover:cursor-pointer disabled:cursor-not-allowed disabled:text-slate-400"
-                  :disabled="deletingAssignmentId === assignment.id"
-                  @click="removeAssignment(assignment.id)"
-                >
-                  {{ deletingAssignmentId === assignment.id ? 'Removing…' : 'Remove' }}
-                </button>
-              </li>
-            </ul>
-          </article>
-        </div>
-      </section>
+      <RepresentationAssignmentGroup
+        title="Brand Stewards"
+        description="Grouped by represented brand."
+        empty-message="No Brand Stewards listed."
+        :groups="brandStewardGroups"
+        :deleting-assignment-id="deletingAssignmentId"
+        @remove-assignment="removeAssignment"
+      />
     </section>
   </main>
 </template>
@@ -186,6 +110,7 @@ import { fetchMemberDirectory } from '@/services/memberDirectory'
 import type { LeadershipItem, LeadershipRole, LeadershipScopeType } from '@/types/leadership'
 import type { MemberListItem } from '@/types/member'
 import AdminMemberSearch from '@/components/admin/AdminMemberSearch.vue'
+import RepresentationAssignmentGroup from '@/components/admin/RepresentationAssignmentGroup.vue'
 
 // TODO: Refactor?
 
