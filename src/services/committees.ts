@@ -1,5 +1,10 @@
 import { supabase } from '@/lib/supabaseClient'
-import type { Committee, CommitteeMember, CommitteeMembershipPayload } from '@/types/committee'
+import type {
+  Committee,
+  CommitteeMember,
+  CommitteeMembershipPayload,
+  CommitteePayload,
+} from '@/types/committee'
 
 type CommitteeMemberProfileRow = {
   id: string
@@ -104,6 +109,17 @@ export async function createCommitteeMembership(payload: CommitteeMembershipPayl
 
 export async function deleteCommitteeMembership(membershipId: string) {
   const { error } = await supabase.from('member_committees').delete().eq('id', membershipId)
+
+  if (error) {
+    throw new Error(error.message)
+  }
+}
+
+export async function createCommittee(payload: CommitteePayload) {
+  const { error } = await supabase.from('committees').insert({
+    name: payload.name,
+    description: payload.description || null,
+  })
 
   if (error) {
     throw new Error(error.message)
