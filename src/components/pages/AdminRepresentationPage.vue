@@ -52,6 +52,12 @@
         >
           {{ isSubmittingAssignment ? 'Adding…' : 'Add' }}
         </button>
+        <p
+          v-if="selectedAssignmentAlreadyExists"
+          class="text-sm text-(--color-brand-red) md:col-span-3"
+        >
+          This representation assignment already exists.
+        </p>
       </form>
     </section>
 
@@ -209,10 +215,20 @@ const selectedScopeType = computed<LeadershipScopeType>(() =>
   selectedRole.value === 'area_captain' ? 'location' : 'brand',
 )
 
+const selectedAssignmentAlreadyExists = computed(() =>
+  assignments.value.some(
+    (assignment) =>
+      assignment.memberId === selectedMemberId.value &&
+      assignment.role === selectedRole.value &&
+      assignment.scopeValue === selectedScopeValue.value,
+  ),
+)
+
 const canSubmitAssignment = computed(
   () =>
     selectedMemberId.value.length > 0 &&
     selectedScopeValue.value.length > 0 &&
+    !selectedAssignmentAlreadyExists.value &&
     !isSubmittingAssignment.value,
 )
 

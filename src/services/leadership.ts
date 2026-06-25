@@ -3,6 +3,7 @@ import { deriveMemberArea } from '@/utils/deriveMemberArea'
 import type { LeadershipItem, LeadershipRole, LeadershipScopeType } from '@/types/leadership'
 
 type LeadershipMemberRow = {
+  id: string
   legal_first_name: string
   legal_last_name: string
   preferred_name: string | null
@@ -55,6 +56,7 @@ export function mapLeadershipAssignmentRow(row: LeadershipAssignmentRow): Leader
 
   return {
     id: row.id,
+    memberId: member.id,
     name: getDisplayName(member),
     role: row.leadership_role,
     scopeType: row.scope_type,
@@ -74,6 +76,7 @@ export async function fetchLeadershipAssignmentsLookup() {
         scope_type,
         scope_value,
         members (
+          id,
           legal_first_name,
           legal_last_name,
           preferred_name,
@@ -106,6 +109,7 @@ export async function fetchLeadershipAssignments() {
         scope_type,
         scope_value,
         members (
+          id,
           legal_first_name,
           legal_last_name,
           preferred_name,
