@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
-import type { Committee, CommitteeMember } from '@/types/committee'
+import type { Committee, CommitteeMember, CommitteeMembershipPayload } from '@/types/committee'
 
 type CommitteeMemberProfileRow = {
   id: string
@@ -11,6 +11,7 @@ type CommitteeMemberProfileRow = {
 }
 
 type CommitteeMemberRow = {
+  id: string
   members: CommitteeMemberProfileRow | CommitteeMemberProfileRow[] | null
 }
 
@@ -38,6 +39,7 @@ function mapCommitteeMemberRow(row: CommitteeMemberRow): CommitteeMember | null 
 
   return {
     id: member.id,
+    membershipId: row.id,
     name: getDisplayName(member),
     brand: member.brand || '',
     email: member.work_email || '',
@@ -66,6 +68,7 @@ export async function fetchCommittees() {
         name,
         description,
         member_committees (
+          id,
           members (
             id,
             legal_first_name,
@@ -86,4 +89,23 @@ export async function fetchCommittees() {
   const rows = (data ?? []) as CommitteeRow[]
 
   return rows.map(mapCommitteeRow)
+}
+
+export async function createCommitteeMembership(payload: CommitteeMembershipPayload) {
+  const { error } = await supabase.from('member_committees').insert({
+    member_id: payload.memberId,
+    committee_id: payload.committeeId,
+  })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+}
+
+export async function deleteCommitteeMembership(membershipId: string) {
+  const { error } = await supabase.from('member_committees').delete().eq('id', membershipId)
+
+  if (error) {
+    throw new Error(error.message)
+  }
 }

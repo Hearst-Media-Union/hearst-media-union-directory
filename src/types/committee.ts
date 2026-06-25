@@ -1,5 +1,6 @@
 export interface CommitteeMember {
   id: string
+  membershipId: string
   name: string
   brand: string
   email: string
@@ -11,4 +12,9 @@ export interface Committee {
   name: string
   description: string
   members: CommitteeMember[]
+}
+
+export interface CommitteeMembershipPayload {
+  memberId: string
+  committeeId: string
 }

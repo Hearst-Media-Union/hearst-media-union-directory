@@ -50,7 +50,8 @@ const adminSections: AdminSection[] = [
   },
   {
     title: 'Committees',
-    description: 'Future tools for managing committee visibility and membership.',
+    description: 'Manage committee visibility and membership assignments.',
+    route: '/admin/committees',
   },
   {
     title: 'Resources',
