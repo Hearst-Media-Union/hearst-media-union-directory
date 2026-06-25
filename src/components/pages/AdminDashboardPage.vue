@@ -9,32 +9,44 @@
     </section>
 
     <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      <article
+      <component
+        :is="section.route ? 'RouterLink' : 'article'"
         v-for="section in adminSections"
         :key="section.title"
-        class="rounded-lg border border-(--color-border) bg-white p-5 shadow-sm"
+        :to="section.route"
+        class="rounded-lg border border-(--color-border) bg-white p-5 shadow-sm transition-colors"
+        :class="section.route ? 'cursor-pointer hover:border-(--color-brand-red)' : ''"
       >
         <p class="font-condensed text-xl font-semibold text-(--color-brand-navy)">
           {{ section.title }}
         </p>
+
         <p class="mt-2 text-sm leading-6 text-slate-600">
           {{ section.description }}
         </p>
-        <p class="mt-4 text-xs font-medium text-slate-500">Coming later</p>
-      </article>
+
+        <p v-if="!section.route" class="mt-4 text-xs font-medium text-slate-500">Coming later</p>
+      </component>
     </section>
   </main>
 </template>
 
 <script setup lang="ts">
-const adminSections = [
+type AdminSection = {
+  title: string
+  description: string
+  route?: string
+}
+
+const adminSections: AdminSection[] = [
   {
     title: 'Members',
     description: 'Future tools for reviewing and managing member directory records.',
   },
   {
-    title: 'Leadership',
-    description: 'Future tools for managing leadership and representation assignments.',
+    title: 'Representation',
+    description: 'Manage Area Captains, Brand Stewards, and representation assignments.',
+    route: '/admin/representation',
   },
   {
     title: 'Committees',
