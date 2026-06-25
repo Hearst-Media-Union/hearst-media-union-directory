@@ -10,56 +10,12 @@
       </p>
     </section>
 
-    <section class="rounded-md bg-slate-50 p-4">
-      <form class="grid gap-4 md:grid-cols-[1fr_1fr_auto]" @submit.prevent="addAssignment">
-        <div class="md:col-span-3">
-          <AdminMemberSearch v-model:selected-member-id="selectedMemberId" :members="members" />
-        </div>
-
-        <label class="space-y-1 text-sm">
-          <span class="font-medium text-(--color-brand-navy)">Role</span>
-          <select
-            v-model="selectedRole"
-            class="h-10 w-full rounded border border-(--color-border) bg-white px-3 text-sm"
-            @change="selectedScopeValue = ''"
-          >
-            <option value="area_captain">Area Captain</option>
-            <option value="shop_steward">Brand Steward</option>
-          </select>
-        </label>
-
-        <label class="space-y-1 text-sm">
-          <span class="font-medium text-(--color-brand-navy)">Assignment</span>
-          <select
-            v-model="selectedScopeValue"
-            class="h-10 w-full rounded border border-(--color-border) bg-white px-3 text-sm"
-          >
-            <option value="">Select assignment</option>
-            <option
-              v-for="assignmentValue in assignmentOptions"
-              :key="assignmentValue"
-              :value="assignmentValue"
-            >
-              {{ assignmentValue }}
-            </option>
-          </select>
-        </label>
-
-        <button
-          type="submit"
-          class="h-10 self-end rounded bg-(--color-brand-red) px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-300"
-          :disabled="!canSubmitAssignment"
-        >
-          {{ isSubmittingAssignment ? 'Adding…' : 'Add' }}
-        </button>
-        <p
-          v-if="selectedAssignmentAlreadyExists"
-          class="text-sm text-(--color-brand-red) md:col-span-3"
-        >
-          This representation assignment already exists.
-        </p>
-      </form>
-    </section>
+    <AdminRepresentationAssignmentForm
+      :members="members"
+      :assignments="assignments"
+      :is-submitting-assignment="isSubmittingAssignment"
+      @add-assignment="addAssignment"
+    />
 
     <section v-if="successMessage" class="text-sm text-slate-700">
       {{ successMessage }}
@@ -78,99 +34,23 @@
     </section>
 
     <section v-else class="grid gap-8 lg:grid-cols-2">
-      <section class="space-y-4">
-        <div>
-          <h2 class="font-condensed text-2xl font-semibold text-(--color-brand-navy)">
-            Area Captains
-          </h2>
-          <p class="text-sm text-slate-600">Grouped by represented area.</p>
-        </div>
+      <RepresentationAssignmentGroup
+        title="Area Captains"
+        description="Grouped by represented area."
+        empty-message="No Area Captains listed."
+        :groups="areaCaptainGroups"
+        :deleting-assignment-id="deletingAssignmentId"
+        @remove-assignment="removeAssignment"
+      />
 
-        <div v-if="areaCaptainGroups.length === 0" class="text-sm text-slate-600">
-          No Area Captains listed.
-        </div>
-
-        <div v-else class="space-y-4">
-          <article
-            v-for="group in areaCaptainGroups"
-            :key="group.scopeValue"
-            class="space-y-3 rounded-md bg-slate-50 px-4 py-3"
-          >
-            <h3 class="font-condensed text-lg font-semibold text-(--color-brand-navy)">
-              {{ group.scopeValue }}
-            </h3>
-
-            <ul class="space-y-2">
-              <li
-                v-for="assignment in group.assignments"
-                :key="assignment.id"
-                class="flex items-start justify-between gap-3"
-              >
-                <div>
-                  <p class="text-sm font-medium text-slate-800">{{ assignment.name }}</p>
-                  <p class="text-xs text-slate-500">{{ assignment.email || 'No email listed' }}</p>
-                </div>
-
-                <button
-                  type="button"
-                  class="text-xs font-medium text-(--color-brand-red) hover:underline hover:cursor-pointerdisabled:cursor-not-allowed disabled:text-slate-400"
-                  :disabled="deletingAssignmentId === assignment.id"
-                  @click="removeAssignment(assignment.id)"
-                >
-                  {{ deletingAssignmentId === assignment.id ? 'Removing…' : 'Remove' }}
-                </button>
-              </li>
-            </ul>
-          </article>
-        </div>
-      </section>
-
-      <section class="space-y-4">
-        <div>
-          <h2 class="font-condensed text-2xl font-semibold text-(--color-brand-navy)">
-            Brand Stewards
-          </h2>
-          <p class="text-sm text-slate-600">Grouped by represented brand.</p>
-        </div>
-
-        <div v-if="brandStewardGroups.length === 0" class="text-sm text-slate-600">
-          No Brand Stewards listed.
-        </div>
-
-        <div v-else class="space-y-4">
-          <article
-            v-for="group in brandStewardGroups"
-            :key="group.scopeValue"
-            class="space-y-3 rounded-md bg-slate-50 px-4 py-3"
-          >
-            <h3 class="font-condensed text-lg font-semibold text-(--color-brand-navy)">
-              {{ group.scopeValue }}
-            </h3>
-
-            <ul class="space-y-2">
-              <li
-                v-for="assignment in group.assignments"
-                :key="assignment.id"
-                class="flex items-start justify-between gap-3"
-              >
-                <div>
-                  <p class="text-sm font-medium text-slate-800">{{ assignment.name }}</p>
-                  <p class="text-xs text-slate-500">{{ assignment.email || 'No email listed' }}</p>
-                </div>
-
-                <button
-                  type="button"
-                  class="text-xs font-medium text-(--color-brand-red) hover:underline hover:cursor-pointer disabled:cursor-not-allowed disabled:text-slate-400"
-                  :disabled="deletingAssignmentId === assignment.id"
-                  @click="removeAssignment(assignment.id)"
-                >
-                  {{ deletingAssignmentId === assignment.id ? 'Removing…' : 'Remove' }}
-                </button>
-              </li>
-            </ul>
-          </article>
-        </div>
-      </section>
+      <RepresentationAssignmentGroup
+        title="Brand Stewards"
+        description="Grouped by represented brand."
+        empty-message="No Brand Stewards listed."
+        :groups="brandStewardGroups"
+        :deleting-assignment-id="deletingAssignmentId"
+        @remove-assignment="removeAssignment"
+      />
     </section>
   </main>
 </template>
@@ -185,7 +65,8 @@ import {
 import { fetchMemberDirectory } from '@/services/memberDirectory'
 import type { LeadershipItem, LeadershipRole, LeadershipScopeType } from '@/types/leadership'
 import type { MemberListItem } from '@/types/member'
-import AdminMemberSearch from '@/components/admin/AdminMemberSearch.vue'
+import RepresentationAssignmentGroup from '@/components/admin/RepresentationAssignmentGroup.vue'
+import AdminRepresentationAssignmentForm from '@/components/admin/AdminRepresentationAssignmentForm.vue'
 
 // TODO: Refactor?
 
@@ -200,42 +81,7 @@ const errorMessage = ref<string | null>(null)
 const successMessage = ref<string | null>(null)
 const deletingAssignmentId = ref<string | null>(null)
 const members = ref<MemberListItem[]>([])
-const selectedMemberId = ref('')
-const selectedRole = ref<LeadershipRole>('area_captain')
-const selectedScopeValue = ref('')
 const isSubmittingAssignment = ref(false)
-
-const assignmentOptions = computed(() => {
-  const values =
-    selectedRole.value === 'area_captain'
-      ? members.value.map((member) => member.area)
-      : members.value.map((member) => member.brand)
-
-  return [...new Set(values.filter((value) => value.length > 0))].sort((firstValue, secondValue) =>
-    firstValue.localeCompare(secondValue),
-  )
-})
-
-const selectedScopeType = computed<LeadershipScopeType>(() =>
-  selectedRole.value === 'area_captain' ? 'location' : 'brand',
-)
-
-const selectedAssignmentAlreadyExists = computed(() =>
-  assignments.value.some(
-    (assignment) =>
-      assignment.memberId === selectedMemberId.value &&
-      assignment.role === selectedRole.value &&
-      assignment.scopeValue === selectedScopeValue.value,
-  ),
-)
-
-const canSubmitAssignment = computed(
-  () =>
-    selectedMemberId.value.length > 0 &&
-    selectedScopeValue.value.length > 0 &&
-    !selectedAssignmentAlreadyExists.value &&
-    !isSubmittingAssignment.value,
-)
 
 const areaCaptainGroups = computed(() =>
   groupAssignmentsByScopeValue(
@@ -294,25 +140,18 @@ async function loadMembers() {
   }
 }
 
-async function addAssignment() {
-  if (!canSubmitAssignment.value) {
-    return
-  }
-
+async function addAssignment(payload: {
+  memberId: string
+  role: LeadershipRole
+  scopeType: LeadershipScopeType
+  scopeValue: string
+}) {
   isSubmittingAssignment.value = true
   errorMessage.value = null
   successMessage.value = null
 
   try {
-    await createLeadershipAssignment({
-      memberId: selectedMemberId.value,
-      role: selectedRole.value,
-      scopeType: selectedScopeType.value,
-      scopeValue: selectedScopeValue.value,
-    })
-
-    selectedMemberId.value = ''
-    selectedScopeValue.value = ''
+    await createLeadershipAssignment(payload)
 
     await loadAssignments()
     successMessage.value = 'Representation assignment added.'
