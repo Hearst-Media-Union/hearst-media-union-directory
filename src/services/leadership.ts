@@ -20,6 +20,13 @@ type LeadershipAssignmentRow = {
   members: LeadershipMemberRow | LeadershipMemberRow[] | null
 }
 
+type CreateLeadershipAssignmentInput = {
+  memberId: string
+  role: LeadershipRole
+  scopeType: LeadershipScopeType
+  scopeValue: string
+}
+
 function getDisplayName(member: LeadershipMemberRow) {
   if (member.preferred_name) {
     return member.preferred_name
@@ -120,4 +127,30 @@ export async function fetchLeadershipAssignments() {
   return rows
     .map(mapLeadershipAssignmentRow)
     .filter((item): item is LeadershipItem => item !== null)
+}
+
+export async function createLeadershipAssignment({
+  memberId,
+  role,
+  scopeType,
+  scopeValue,
+}: CreateLeadershipAssignmentInput) {
+  const { error } = await supabase.from('leadership_assignments').insert({
+    member_id: memberId,
+    leadership_role: role,
+    scope_type: scopeType,
+    scope_value: scopeValue,
+  })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+}
+
+export async function deleteLeadershipAssignment(assignmentId: string) {
+  const { error } = await supabase.from('leadership_assignments').delete().eq('id', assignmentId)
+
+  if (error) {
+    throw new Error(error.message)
+  }
 }

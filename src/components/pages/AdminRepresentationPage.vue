@@ -46,9 +46,24 @@
             </h3>
 
             <ul class="space-y-2">
-              <li v-for="assignment in group.assignments" :key="assignment.id">
-                <p class="text-sm font-medium text-slate-800">{{ assignment.name }}</p>
-                <p class="text-xs text-slate-500">{{ assignment.email || 'No email listed' }}</p>
+              <li
+                v-for="assignment in group.assignments"
+                :key="assignment.id"
+                class="flex items-start justify-between gap-3"
+              >
+                <div>
+                  <p class="text-sm font-medium text-slate-800">{{ assignment.name }}</p>
+                  <p class="text-xs text-slate-500">{{ assignment.email || 'No email listed' }}</p>
+                </div>
+
+                <button
+                  type="button"
+                  class="text-xs font-medium text-(--color-brand-red) hover:underline hover:cursor-pointerdisabled:cursor-not-allowed disabled:text-slate-400"
+                  :disabled="deletingAssignmentId === assignment.id"
+                  @click="removeAssignment(assignment.id)"
+                >
+                  {{ deletingAssignmentId === assignment.id ? 'Removing…' : 'Remove' }}
+                </button>
               </li>
             </ul>
           </article>
@@ -78,9 +93,24 @@
             </h3>
 
             <ul class="space-y-2">
-              <li v-for="assignment in group.assignments" :key="assignment.id">
-                <p class="text-sm font-medium text-slate-800">{{ assignment.name }}</p>
-                <p class="text-xs text-slate-500">{{ assignment.email || 'No email listed' }}</p>
+              <li
+                v-for="assignment in group.assignments"
+                :key="assignment.id"
+                class="flex items-start justify-between gap-3"
+              >
+                <div>
+                  <p class="text-sm font-medium text-slate-800">{{ assignment.name }}</p>
+                  <p class="text-xs text-slate-500">{{ assignment.email || 'No email listed' }}</p>
+                </div>
+
+                <button
+                  type="button"
+                  class="text-xs font-medium text-(--color-brand-red) hover:underline hover:cursor-pointer disabled:cursor-not-allowed disabled:text-slate-400"
+                  :disabled="deletingAssignmentId === assignment.id"
+                  @click="removeAssignment(assignment.id)"
+                >
+                  {{ deletingAssignmentId === assignment.id ? 'Removing…' : 'Remove' }}
+                </button>
               </li>
             </ul>
           </article>
@@ -92,8 +122,10 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { fetchLeadershipAssignments } from '@/services/leadership'
+import { deleteLeadershipAssignment, fetchLeadershipAssignments } from '@/services/leadership'
 import type { LeadershipItem } from '@/types/leadership'
+
+// TODO: Refactor?
 
 type AssignmentGroup = {
   scopeValue: string
@@ -103,6 +135,7 @@ type AssignmentGroup = {
 const assignments = ref<LeadershipItem[]>([])
 const isLoading = ref(false)
 const errorMessage = ref<string | null>(null)
+const deletingAssignmentId = ref<string | null>(null)
 
 const areaCaptainGroups = computed(() =>
   groupAssignmentsByScopeValue(
@@ -135,6 +168,20 @@ function groupAssignmentsByScopeValue(nextAssignments: LeadershipItem[]): Assign
       assignments: groupedAssignments,
     }))
     .sort((firstGroup, secondGroup) => firstGroup.scopeValue.localeCompare(secondGroup.scopeValue))
+}
+
+async function removeAssignment(assignmentId: string) {
+  deletingAssignmentId.value = assignmentId
+  errorMessage.value = null
+
+  try {
+    await deleteLeadershipAssignment(assignmentId)
+    assignments.value = assignments.value.filter((assignment) => assignment.id !== assignmentId)
+  } catch {
+    errorMessage.value = 'Unable to remove representation assignment.'
+  } finally {
+    deletingAssignmentId.value = null
+  }
 }
 
 async function loadAssignments() {
