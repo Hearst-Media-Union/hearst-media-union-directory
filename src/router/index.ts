@@ -11,6 +11,7 @@ import ContactPage from '@/components/pages/ContactPage.vue'
 import AuthConfirmedPage from '@/components/pages/AuthConfirmedPage.vue'
 import AdminDashboardPage from '@/components/pages/AdminDashboardPage.vue'
 import AdminRepresentationPage from '@/components/pages/AdminRepresentationPage.vue'
+import AdminCommitteeMembershipPage from '@/components/pages/AdminCommitteeMembershipPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -100,6 +101,15 @@ const router = createRouter({
       path: '/admin/representation',
       name: 'admin-representation',
       component: AdminRepresentationPage,
+      meta: {
+        requiresAuth: true,
+        requiresAdmin: true,
+      },
+    },
+    {
+      path: '/admin/committees',
+      name: 'admin-committees',
+      component: AdminCommitteeMembershipPage,
       meta: {
         requiresAuth: true,
         requiresAdmin: true,
