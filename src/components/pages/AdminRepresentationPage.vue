@@ -10,6 +10,60 @@
       </p>
     </section>
 
+    <section class="rounded-md bg-slate-50 p-4">
+      <form class="grid gap-4 md:grid-cols-[1fr_1fr_1fr_auto]" @submit.prevent="addAssignment">
+        <label class="space-y-1 text-sm">
+          <span class="font-medium text-(--color-brand-navy)">Member</span>
+          <select
+            v-model="selectedMemberId"
+            class="h-10 w-full rounded border border-(--color-border) bg-white px-3 text-sm"
+          >
+            <option value="">Select member</option>
+            <option v-for="member in members" :key="member.id" :value="member.id">
+              {{ member.name }}
+            </option>
+          </select>
+        </label>
+
+        <label class="space-y-1 text-sm">
+          <span class="font-medium text-(--color-brand-navy)">Role</span>
+          <select
+            v-model="selectedRole"
+            class="h-10 w-full rounded border border-(--color-border) bg-white px-3 text-sm"
+            @change="selectedScopeValue = ''"
+          >
+            <option value="area_captain">Area Captain</option>
+            <option value="shop_steward">Brand Steward</option>
+          </select>
+        </label>
+
+        <label class="space-y-1 text-sm">
+          <span class="font-medium text-(--color-brand-navy)">Assignment</span>
+          <select
+            v-model="selectedScopeValue"
+            class="h-10 w-full rounded border border-(--color-border) bg-white px-3 text-sm"
+          >
+            <option value="">Select assignment</option>
+            <option
+              v-for="assignmentValue in assignmentOptions"
+              :key="assignmentValue"
+              :value="assignmentValue"
+            >
+              {{ assignmentValue }}
+            </option>
+          </select>
+        </label>
+
+        <button
+          type="submit"
+          class="h-10 self-end rounded bg-(--color-brand-red) px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-300"
+          :disabled="!canSubmitAssignment"
+        >
+          {{ isSubmittingAssignment ? 'Adding…' : 'Add' }}
+        </button>
+      </form>
+    </section>
+
     <section v-if="isLoading" class="text-sm text-slate-600">
       Loading representation assignments…
     </section>
@@ -122,8 +176,14 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { deleteLeadershipAssignment, fetchLeadershipAssignments } from '@/services/leadership'
-import type { LeadershipItem } from '@/types/leadership'
+import {
+  createLeadershipAssignment,
+  deleteLeadershipAssignment,
+  fetchLeadershipAssignments,
+} from '@/services/leadership'
+import { fetchMemberDirectory } from '@/services/memberDirectory'
+import type { LeadershipItem, LeadershipRole, LeadershipScopeType } from '@/types/leadership'
+import type { MemberListItem } from '@/types/member'
 
 // TODO: Refactor?
 
@@ -136,6 +196,33 @@ const assignments = ref<LeadershipItem[]>([])
 const isLoading = ref(false)
 const errorMessage = ref<string | null>(null)
 const deletingAssignmentId = ref<string | null>(null)
+const members = ref<MemberListItem[]>([])
+const selectedMemberId = ref('')
+const selectedRole = ref<LeadershipRole>('area_captain')
+const selectedScopeValue = ref('')
+const isSubmittingAssignment = ref(false)
+
+const assignmentOptions = computed(() => {
+  const values =
+    selectedRole.value === 'area_captain'
+      ? members.value.map((member) => member.area)
+      : members.value.map((member) => member.brand)
+
+  return [...new Set(values.filter((value) => value.length > 0))].sort((firstValue, secondValue) =>
+    firstValue.localeCompare(secondValue),
+  )
+})
+
+const selectedScopeType = computed<LeadershipScopeType>(() =>
+  selectedRole.value === 'area_captain' ? 'location' : 'brand',
+)
+
+const canSubmitAssignment = computed(
+  () =>
+    selectedMemberId.value.length > 0 &&
+    selectedScopeValue.value.length > 0 &&
+    !isSubmittingAssignment.value,
+)
 
 const areaCaptainGroups = computed(() =>
   groupAssignmentsByScopeValue(
@@ -184,6 +271,41 @@ async function removeAssignment(assignmentId: string) {
   }
 }
 
+async function loadMembers() {
+  try {
+    members.value = await fetchMemberDirectory()
+  } catch {
+    errorMessage.value = 'Unable to load members for representation assignment.'
+  }
+}
+
+async function addAssignment() {
+  if (!canSubmitAssignment.value) {
+    return
+  }
+
+  isSubmittingAssignment.value = true
+  errorMessage.value = null
+
+  try {
+    await createLeadershipAssignment({
+      memberId: selectedMemberId.value,
+      role: selectedRole.value,
+      scopeType: selectedScopeType.value,
+      scopeValue: selectedScopeValue.value,
+    })
+
+    selectedMemberId.value = ''
+    selectedScopeValue.value = ''
+
+    await loadAssignments()
+  } catch {
+    errorMessage.value = 'Unable to add representation assignment.'
+  } finally {
+    isSubmittingAssignment.value = false
+  }
+}
+
 async function loadAssignments() {
   isLoading.value = true
   errorMessage.value = null
@@ -198,6 +320,7 @@ async function loadAssignments() {
 }
 
 onMounted(() => {
+  void loadMembers()
   void loadAssignments()
 })
 </script>
