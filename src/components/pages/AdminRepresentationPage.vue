@@ -61,6 +61,10 @@
       </form>
     </section>
 
+    <section v-if="successMessage" class="text-sm text-slate-700">
+      {{ successMessage }}
+    </section>
+
     <section v-if="isLoading" class="text-sm text-slate-600">
       Loading representation assignments…
     </section>
@@ -193,6 +197,7 @@ type AssignmentGroup = {
 const assignments = ref<LeadershipItem[]>([])
 const isLoading = ref(false)
 const errorMessage = ref<string | null>(null)
+const successMessage = ref<string | null>(null)
 const deletingAssignmentId = ref<string | null>(null)
 const members = ref<MemberListItem[]>([])
 const selectedMemberId = ref('')
@@ -268,10 +273,12 @@ function groupAssignmentsByScopeValue(nextAssignments: LeadershipItem[]): Assign
 async function removeAssignment(assignmentId: string) {
   deletingAssignmentId.value = assignmentId
   errorMessage.value = null
+  successMessage.value = null
 
   try {
     await deleteLeadershipAssignment(assignmentId)
     assignments.value = assignments.value.filter((assignment) => assignment.id !== assignmentId)
+    successMessage.value = 'Representation assignment removed.'
   } catch {
     errorMessage.value = 'Unable to remove representation assignment.'
   } finally {
@@ -294,6 +301,7 @@ async function addAssignment() {
 
   isSubmittingAssignment.value = true
   errorMessage.value = null
+  successMessage.value = null
 
   try {
     await createLeadershipAssignment({
@@ -307,6 +315,7 @@ async function addAssignment() {
     selectedScopeValue.value = ''
 
     await loadAssignments()
+    successMessage.value = 'Representation assignment added.'
   } catch {
     errorMessage.value = 'Unable to add representation assignment.'
   } finally {
