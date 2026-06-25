@@ -41,7 +41,8 @@ type AdminSection = {
 const adminSections: AdminSection[] = [
   {
     title: 'Members',
-    description: 'Future tools for reviewing and managing member directory records.',
+    description: 'Create WGAE member profiles and manage member directory records.',
+    route: '/admin/members',
   },
   {
     title: 'Representation',

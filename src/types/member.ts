@@ -21,3 +21,13 @@ export interface MemberDetail extends MemberListItem {
   personalEmail: string
   representation: MemberRepresentationContact[]
 }
+
+export interface AdminMemberPayload {
+  legalFirstName: string
+  legalLastName: string
+  preferredName: string
+  workEmail: string
+  personalEmail: string
+  phone: string
+  title: string
+}
