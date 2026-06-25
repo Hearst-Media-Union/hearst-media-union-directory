@@ -18,3 +18,8 @@ export interface CommitteeMembershipPayload {
   memberId: string
   committeeId: string
 }
+
+export interface CommitteePayload {
+  name: string
+  description: string
+}

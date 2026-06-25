@@ -1,5 +1,9 @@
 <template>
-  <section class="rounded-md bg-slate-50 p-4">
+  <section class="space-y-4 rounded-md bg-slate-50 p-5">
+    <div class="space-y-1">
+      <h2 class="font-condensed text-xl font-semibold text-(--color-brand-navy)">Assign Member</h2>
+    </div>
+
     <form class="grid gap-4 md:grid-cols-[1fr_auto]" @submit.prevent="submitMembership">
       <div class="md:col-span-2">
         <AdminMemberSearch v-model:selected-member-id="selectedMemberId" :members="members" />

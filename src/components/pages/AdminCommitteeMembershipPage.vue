@@ -9,6 +9,11 @@
         Assign members to committees and review current committee membership.
       </p>
     </section>
+    <AdminCommitteeForm
+      :committees="committees"
+      :is-submitting-committee="isSubmittingCommittee"
+      @create-committee="addCommittee"
+    />
     <AdminCommitteeMembershipForm
       :members="members"
       :committees="committees"
@@ -87,6 +92,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import {
+  createCommittee,
   createCommitteeMembership,
   deleteCommitteeMembership,
   fetchCommittees,
@@ -95,6 +101,7 @@ import { fetchMemberDirectory } from '@/services/memberDirectory'
 import type { Committee } from '@/types/committee'
 import type { MemberListItem } from '@/types/member'
 import AdminCommitteeMembershipForm from '@/components/admin/AdminCommitteeMembershipForm.vue'
+import AdminCommitteeForm from '@/components/admin/AdminCommitteeForm.vue'
 
 const committees = ref<Committee[]>([])
 const members = ref<MemberListItem[]>([])
@@ -103,6 +110,23 @@ const errorMessage = ref<string | null>(null)
 const successMessage = ref<string | null>(null)
 const isSubmittingMembership = ref(false)
 const deletingMembershipId = ref<string | null>(null)
+const isSubmittingCommittee = ref(false)
+
+async function addCommittee(payload: { name: string; description: string }) {
+  isSubmittingCommittee.value = true
+  errorMessage.value = null
+  successMessage.value = null
+
+  try {
+    await createCommittee(payload)
+    await loadCommitteeMembershipPage()
+    successMessage.value = 'Committee created.'
+  } catch {
+    errorMessage.value = 'Unable to create committee.'
+  } finally {
+    isSubmittingCommittee.value = false
+  }
+}
 
 async function removeMembership(membershipId: string) {
   deletingMembershipId.value = membershipId
