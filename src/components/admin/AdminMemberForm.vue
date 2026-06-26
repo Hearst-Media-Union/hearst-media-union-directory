@@ -2,10 +2,10 @@
   <section class="rounded-md bg-slate-50 p-5">
     <div class="space-y-1">
       <h2 class="font-condensed text-xl font-semibold text-(--color-brand-navy)">
-        Create WGAE Member
+        {{ heading }}
       </h2>
       <p class="text-sm text-slate-600">
-        Create a member profile that can be linked when the person creates an account.
+        {{ description }}
       </p>
     </div>
 
@@ -111,7 +111,7 @@
           class="h-10 rounded bg-(--color-brand-red) px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-300"
           :disabled="!canSubmitMember"
         >
-          {{ isSubmittingMember ? 'Creating…' : 'Create Member' }}
+          {{ isSubmittingMember ? submittingLabel : submitLabel }}
         </button>
       </div>
     </form>
@@ -122,10 +122,24 @@
 import { computed, ref, watch } from 'vue'
 import type { AdminMemberPayload } from '@/types/member'
 
-const props = defineProps<{
-  isSubmittingMember: boolean
-  existingWorkEmails: string[]
-}>()
+const props = withDefaults(
+  defineProps<{
+    isSubmittingMember: boolean
+    existingWorkEmails: string[]
+    heading?: string
+    description?: string
+    submitLabel?: string
+    submittingLabel?: string
+    ignoredWorkEmail?: string | null
+  }>(),
+  {
+    heading: 'Create WGAE Member',
+    description: 'Create a member profile that can be linked when the person creates an account.',
+    submitLabel: 'Create Member',
+    submittingLabel: 'Creating…',
+    ignoredWorkEmail: null,
+  },
+)
 
 const emit = defineEmits<{
   createMember: [payload: AdminMemberPayload]
@@ -146,9 +160,15 @@ const workEmailLocalPartPattern = /^[a-z0-9._-]+$/
 
 const workEmail = computed(() => `${workEmailLocalPart.value.trim()}@wgaeast.org`)
 
-const workEmailAlreadyExists = computed(() =>
-  props.existingWorkEmails.includes(workEmail.value.trim().toLowerCase()),
-)
+const workEmailAlreadyExists = computed(() => {
+  const normalizedWorkEmail = workEmail.value.trim().toLowerCase()
+  const normalizedIgnoredWorkEmail = props.ignoredWorkEmail?.trim().toLowerCase() ?? null
+
+  return (
+    normalizedWorkEmail !== normalizedIgnoredWorkEmail &&
+    props.existingWorkEmails.includes(normalizedWorkEmail)
+  )
+})
 
 const isWorkEmailLocalPartValid = computed(
   () =>
@@ -263,8 +283,21 @@ function resetForm() {
   title.value = ''
 }
 
+function populateForm(payload: AdminMemberPayload) {
+  legalFirstName.value = payload.legalFirstName
+  legalLastName.value = payload.legalLastName
+  preferredName.value = payload.preferredName
+  workEmailLocalPart.value = payload.workEmail.replace(/@wgaeast\.org$/i, '')
+  hasEditedWorkEmail.value = true
+  personalEmail.value = payload.personalEmail
+  phone.value = payload.phone
+  phoneRawValue.value = payload.phone
+  title.value = payload.title
+}
+
 defineExpose({
   resetForm,
+  populateForm,
 })
 
 function submitMember() {

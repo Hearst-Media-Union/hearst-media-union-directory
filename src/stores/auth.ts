@@ -42,12 +42,14 @@ export const useAuthStore = defineStore('auth', () => {
       await fetchOrCreateProfile()
     }
 
-    supabase.auth.onAuthStateChange(async (_event, nextSession) => {
+    supabase.auth.onAuthStateChange((_event, nextSession) => {
       session.value = nextSession
       user.value = nextSession?.user ?? null
 
       if (user.value) {
-        await fetchOrCreateProfile()
+        window.setTimeout(() => {
+          void fetchOrCreateProfile()
+        }, 0)
       } else {
         profile.value = null
       }

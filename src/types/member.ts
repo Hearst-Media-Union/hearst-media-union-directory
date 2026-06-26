@@ -31,3 +31,7 @@ export interface AdminMemberPayload {
   phone: string
   title: string
 }
+
+export interface AdminMemberUpdatePayload extends AdminMemberPayload {
+  id: string
+}

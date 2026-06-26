@@ -40,7 +40,7 @@
           <span class="font-medium">Search members</span>
           <input
             v-model="memberSearchTerm"
-            class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm md:w-72"
+            class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm md:w-72 ml-2"
             type="search"
             placeholder="Search by name, email, brand, or title"
           />
@@ -123,12 +123,20 @@ async function addMember(payload: AdminMemberPayload) {
   try {
     await createAdminMember(payload)
     successMessage.value = 'Member profile created.'
-    isSubmittingMember.value = false
-    await loadMembers()
     memberForm.value?.resetForm()
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'Unable to create member profile.'
+  } finally {
     isSubmittingMember.value = false
+  }
+
+  try {
+    await loadMembers()
+  } catch (error) {
+    errorMessage.value =
+      error instanceof Error
+        ? error.message
+        : 'Member was created, but the member list did not reload.'
   }
 }
 
