@@ -11,9 +11,12 @@ export async function createAdminMember(payload: AdminMemberPayload) {
     legal_first_name: payload.legalFirstName.trim(),
     legal_last_name: payload.legalLastName.trim(),
     preferred_name: preferredName,
+    preferred_name_source: 'admin',
     work_email: payload.workEmail.trim(),
     personal_email: payload.personalEmail.trim() || null,
+    personal_email_source: 'admin',
     primary_phone: payload.phone.trim() || null,
+    primary_phone_source: 'admin',
     assignment_name: payload.title.trim() || null,
     is_active: true,
   })
