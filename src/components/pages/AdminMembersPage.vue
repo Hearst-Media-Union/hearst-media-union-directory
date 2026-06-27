@@ -107,63 +107,94 @@
 
       <p v-if="isLoadingSelectedMember" class="text-sm text-slate-600">Loading member details…</p>
 
-      <div v-else-if="selectedMember" class="grid gap-3 text-sm md:grid-cols-2">
-        <p>
-          <span class="font-medium text-(--color-brand-navy)">Name:</span>
-          {{ selectedMember.legalFirstName }} {{ selectedMember.legalLastName }}
-        </p>
-        <p>
-          <span class="font-medium text-(--color-brand-navy)">Preferred Name:</span>
-          {{ selectedMember.preferredName || 'None listed' }}
-        </p>
-        <p>
-          <span class="font-medium text-(--color-brand-navy)">Work Email:</span>
-          {{ selectedMember.workEmail || 'None listed' }}
-        </p>
-        <p>
-          <span class="font-medium text-(--color-brand-navy)">Personal Email:</span>
-          {{ selectedMember.personalEmail || 'None listed' }}
-        </p>
-        <p>
-          <span class="font-medium text-(--color-brand-navy)">Phone:</span>
-          {{ selectedMember.phone || 'None listed' }}
-        </p>
-        <p>
-          <span class="font-medium text-(--color-brand-navy)">Brand:</span>
-          {{ selectedMember.brand || 'None listed' }}
-        </p>
-        <p>
-          <span class="font-medium text-(--color-brand-navy)">Job Title:</span>
-          {{ selectedMember.title || 'None listed' }}
-        </p>
-        <p>
-          <span class="font-medium text-(--color-brand-navy)">Unit Title:</span>
-          {{ selectedMember.unit || 'None listed' }}
-        </p>
-        <p>
-          <span class="font-medium text-(--color-brand-navy)">Location:</span>
-          {{ selectedMember.location || 'None listed' }}
-        </p>
-        <p>
-          <span class="font-medium text-(--color-brand-navy)">Unit Tier:</span>
-          {{ selectedMember.unitTier || 'None listed' }}
-        </p>
-        <p>
-          <span class="font-medium text-(--color-brand-navy)">Employee Number:</span>
-          {{ selectedMember.employeeNumber || 'None listed' }}
-        </p>
-        <p>
-          <span class="font-medium text-(--color-brand-navy)">Union ID:</span>
-          {{ selectedMember.unionId || 'None listed' }}
-        </p>
-        <p>
-          <span class="font-medium text-(--color-brand-navy)">Source:</span>
-          {{ selectedMember.memberSource }}
-        </p>
-        <p>
-          <span class="font-medium text-(--color-brand-navy)">Status:</span>
-          {{ selectedMember.isActive ? 'Active' : 'Inactive' }}
-        </p>
+      <div v-else-if="selectedMember" class="space-y-6 text-sm">
+        <section class="space-y-3">
+          <h3 class="font-condensed text-lg font-semibold text-(--color-brand-navy)">Identity</h3>
+
+          <div class="grid gap-3 md:grid-cols-2">
+            <p>
+              <span class="font-medium text-(--color-brand-navy)">Legal Name:</span>
+              {{ selectedMember.legalFirstName }} {{ selectedMember.legalLastName }}
+            </p>
+            <p>
+              <span class="font-medium text-(--color-brand-navy)">Preferred Name:</span>
+              {{ selectedMember.preferredName || 'None listed' }}
+            </p>
+            <p>
+              <span class="font-medium text-(--color-brand-navy)">Employee Number:</span>
+              {{ selectedMember.employeeNumber || 'None listed' }}
+            </p>
+            <p>
+              <span class="font-medium text-(--color-brand-navy)">Union ID:</span>
+              {{ selectedMember.unionId || 'None listed' }}
+            </p>
+          </div>
+        </section>
+
+        <section class="space-y-3 border-t border-(--color-app-border) pt-4">
+          <h3 class="font-condensed text-lg font-semibold text-(--color-brand-navy)">Contact</h3>
+
+          <div class="grid gap-3 md:grid-cols-2">
+            <p>
+              <span class="font-medium text-(--color-brand-navy)">Work Email:</span>
+              {{ selectedMember.workEmail || 'None listed' }}
+            </p>
+            <p>
+              <span class="font-medium text-(--color-brand-navy)">Personal Email:</span>
+              {{ selectedMember.personalEmail || 'None listed' }}
+            </p>
+            <p>
+              <span class="font-medium text-(--color-brand-navy)">Phone:</span>
+              {{ selectedMember.phone || 'None listed' }}
+            </p>
+          </div>
+        </section>
+
+        <section class="space-y-3 border-t border-(--color-app-border) pt-4">
+          <h3 class="font-condensed text-lg font-semibold text-(--color-brand-navy)">Employment</h3>
+
+          <div class="grid gap-3 md:grid-cols-2">
+            <p>
+              <span class="font-medium text-(--color-brand-navy)">Brand:</span>
+              {{ selectedMember.brand || 'None listed' }}
+            </p>
+            <p>
+              <span class="font-medium text-(--color-brand-navy)">Job Title:</span>
+              {{ selectedMember.title || 'None listed' }}
+            </p>
+            <p>
+              <span class="font-medium text-(--color-brand-navy)">Unit Title:</span>
+              {{ selectedMember.unit || 'None listed' }}
+            </p>
+            <p>
+              <span class="font-medium text-(--color-brand-navy)">Location:</span>
+              {{ selectedMember.location || 'None listed' }}
+            </p>
+            <p>
+              <span class="font-medium text-(--color-brand-navy)">Unit Tier:</span>
+              {{ selectedMember.unitTier || 'None listed' }}
+            </p>
+          </div>
+        </section>
+
+        <section class="space-y-3 border-t border-(--color-app-border) pt-4">
+          <h3 class="font-condensed text-lg font-semibold text-(--color-brand-navy)">Status</h3>
+
+          <div class="grid gap-3 md:grid-cols-2">
+            <p>
+              <span class="font-medium text-(--color-brand-navy)">Source:</span>
+              {{ selectedMember.memberSource }}
+            </p>
+            <p>
+              <span class="font-medium text-(--color-brand-navy)">Status:</span>
+              {{ selectedMember.isActive ? 'Active' : 'Inactive' }}
+            </p>
+            <p v-if="!selectedMember.isActive">
+              <span class="font-medium text-(--color-brand-navy)">Inactive Reason:</span>
+              {{ selectedMember.inactiveReason || 'None listed' }}
+            </p>
+          </div>
+        </section>
       </div>
 
       <template #footer>
