@@ -32,10 +32,6 @@ export interface AdminMemberPayload {
   title: string
 }
 
-export interface AdminMemberUpdatePayload extends AdminMemberPayload {
-  id: string
-}
-
 export type MemberSource = 'import' | 'admin'
 
 export interface AdminEditableMember {

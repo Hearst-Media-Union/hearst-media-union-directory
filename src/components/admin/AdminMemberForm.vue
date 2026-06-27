@@ -120,6 +120,14 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import {
+  formatPhoneNumber,
+  getPhoneDigits,
+  getSuggestedWorkEmailLocalPart,
+  hasInvalidPhoneCharacters,
+  isValidEmail,
+  isValidWorkEmailLocalPart,
+} from '@/utils/memberFormValidation'
 import type { AdminMemberPayload } from '@/types/member'
 
 const props = withDefaults(
@@ -154,11 +162,23 @@ const phone = ref('')
 const title = ref('')
 const phoneRawValue = ref('')
 
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-const workEmailLocalPartPattern = /^[a-z0-9._-]+$/
-
 const workEmail = computed(() => `${workEmailLocalPart.value.trim()}@wgaeast.org`)
+
+const isWorkEmailLocalPartValid = computed(() =>
+  isValidWorkEmailLocalPart(workEmailLocalPart.value),
+)
+
+const isPersonalEmailValid = computed(() => isValidEmail(personalEmail.value))
+
+const phoneHasInvalidCharacters = computed(() => hasInvalidPhoneCharacters(phoneRawValue.value))
+
+const phoneDigits = computed(() => getPhoneDigits(phoneRawValue.value))
+
+const isPhoneValid = computed(
+  () =>
+    phoneRawValue.value.trim().length === 0 ||
+    (!phoneHasInvalidCharacters.value && phoneDigits.value.length === 10),
+)
 
 const workEmailAlreadyExists = computed(() => {
   const normalizedWorkEmail = workEmail.value.trim().toLowerCase()
@@ -170,27 +190,7 @@ const workEmailAlreadyExists = computed(() => {
   )
 })
 
-const isWorkEmailLocalPartValid = computed(
-  () =>
-    workEmailLocalPart.value.trim().length > 0 &&
-    workEmailLocalPartPattern.test(workEmailLocalPart.value.trim()),
-)
-
 const hasEditedWorkEmail = ref(false)
-
-const isPersonalEmailValid = computed(
-  () => personalEmail.value.trim().length === 0 || emailPattern.test(personalEmail.value.trim()),
-)
-
-const phoneHasInvalidCharacters = computed(() => /[^0-9()+\-\s.]/.test(phoneRawValue.value))
-
-const phoneDigits = computed(() => phoneRawValue.value.replace(/\D/g, '').replace(/^1/, ''))
-
-const isPhoneValid = computed(
-  () =>
-    phoneRawValue.value.trim().length === 0 ||
-    (!phoneHasInvalidCharacters.value && phoneDigits.value.length === 10),
-)
 
 const canSubmitMember = computed(
   () =>
@@ -202,17 +202,6 @@ const canSubmitMember = computed(
     isPhoneValid.value &&
     !props.isSubmittingMember,
 )
-
-function getSuggestedWorkEmailLocalPart(firstName: string, lastName: string) {
-  const normalizedFirstName = firstName.trim().toLowerCase()
-  const normalizedLastName = lastName.trim().toLowerCase()
-
-  if (normalizedFirstName.length === 0 || normalizedLastName.length === 0) {
-    return ''
-  }
-
-  return `${normalizedFirstName.charAt(0)}${normalizedLastName}`.replace(/[^a-z0-9._-]/g, '')
-}
 
 function handleWorkEmailInput(event: Event) {
   const target = event.target
@@ -235,21 +224,6 @@ watch([legalFirstName, legalLastName], () => {
     legalLastName.value,
   )
 })
-
-function formatPhoneNumber(nextValue: string) {
-  const digits = nextValue.replace(/\D/g, '').replace(/^1/, '')
-  const visibleDigits = digits.slice(0, 10)
-
-  if (visibleDigits.length <= 3) {
-    return visibleDigits
-  }
-
-  if (visibleDigits.length <= 6) {
-    return `${visibleDigits.slice(0, 3)}-${visibleDigits.slice(3)}`
-  }
-
-  return `1-${visibleDigits.slice(0, 3)}-${visibleDigits.slice(3, 6)}-${visibleDigits.slice(6)}`
-}
 
 function handlePhoneInput(event: Event) {
   const target = event.target

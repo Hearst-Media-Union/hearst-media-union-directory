@@ -97,7 +97,7 @@
 
           <button
             type="button"
-            class="text-sm font-medium text-slate-600 hover:text-(--color-brand-navy)"
+            class="text-sm font-medium text-slate-600 hover:cursor-pointer hover:text-(--color-brand-navy)"
             @click="closeMemberModal"
           >
             Close
@@ -107,92 +107,186 @@
 
       <p v-if="isLoadingSelectedMember" class="text-sm text-slate-600">Loading member details…</p>
 
-      <div v-else-if="selectedMember" class="space-y-6 text-sm">
+      <div v-else-if="selectedMember && editableMember" class="space-y-6 text-sm">
         <section class="space-y-3">
           <h3 class="font-condensed text-lg font-semibold text-(--color-brand-navy)">Identity</h3>
 
           <div class="grid gap-3 md:grid-cols-2">
-            <p>
-              <span class="font-medium text-(--color-brand-navy)">Legal Name:</span>
-              {{ selectedMember.legalFirstName }} {{ selectedMember.legalLastName }}
-            </p>
-            <p>
-              <span class="font-medium text-(--color-brand-navy)">Preferred Name:</span>
-              {{ selectedMember.preferredName || 'None listed' }}
-            </p>
-            <p>
-              <span class="font-medium text-(--color-brand-navy)">Employee Number:</span>
-              {{ selectedMember.employeeNumber || 'None listed' }}
-            </p>
-            <p>
-              <span class="font-medium text-(--color-brand-navy)">Union ID:</span>
-              {{ selectedMember.unionId || 'None listed' }}
-            </p>
+            <AdminMemberRecordField
+              v-model="editableMember.legalFirstName"
+              label="Legal First Name"
+              :value="selectedMember.legalFirstName"
+              :is-editing="isEditingMember"
+            />
+
+            <AdminMemberRecordField
+              v-model="editableMember.legalLastName"
+              label="Legal Last Name"
+              :value="selectedMember.legalLastName"
+              :is-editing="isEditingMember"
+            />
+
+            <AdminMemberRecordField
+              v-model="editableMember.preferredName"
+              label="Preferred Name"
+              :value="selectedMember.preferredName"
+              :is-editing="isEditingMember"
+            />
+
+            <AdminMemberRecordField
+              v-model="editableMember.employeeNumber"
+              label="Employee Number"
+              :value="selectedMember.employeeNumber"
+              :is-editing="isEditingMember"
+            />
+
+            <AdminMemberRecordField
+              v-model="editableMember.unionId"
+              label="Union ID"
+              :value="selectedMember.unionId"
+              :is-editing="isEditingMember"
+            />
           </div>
         </section>
 
-        <section class="space-y-3 border-t border-(--color-app-border) pt-4">
+        <section class="space-y-3 border-t border-(--color-app-border) pt-5">
           <h3 class="font-condensed text-lg font-semibold text-(--color-brand-navy)">Contact</h3>
 
           <div class="grid gap-3 md:grid-cols-2">
-            <p>
-              <span class="font-medium text-(--color-brand-navy)">Work Email:</span>
-              {{ selectedMember.workEmail || 'None listed' }}
-            </p>
-            <p>
-              <span class="font-medium text-(--color-brand-navy)">Personal Email:</span>
-              {{ selectedMember.personalEmail || 'None listed' }}
-            </p>
-            <p>
-              <span class="font-medium text-(--color-brand-navy)">Phone:</span>
-              {{ selectedMember.phone || 'None listed' }}
-            </p>
+            <div class="space-y-1">
+              <AdminMemberRecordField
+                v-model="editableMember.workEmail"
+                label="Work Email"
+                :value="selectedMember.workEmail"
+                :is-editing="isEditingMember"
+                type="email"
+              />
+              <p
+                v-if="
+                  isEditingMember &&
+                  editableMember.workEmail.length > 0 &&
+                  !isEditableWorkEmailValid
+                "
+                class="text-xs text-(--color-brand-red)"
+              >
+                Enter a valid email address.
+              </p>
+            </div>
+
+            <div class="space-y-1">
+              <AdminMemberRecordField
+                v-model="editableMember.personalEmail"
+                label="Personal Email"
+                :value="selectedMember.personalEmail"
+                :is-editing="isEditingMember"
+                type="email"
+              />
+              <p
+                v-if="
+                  isEditingMember &&
+                  editableMember.personalEmail.length > 0 &&
+                  !isEditablePersonalEmailValid
+                "
+                class="text-xs text-(--color-brand-red)"
+              >
+                Enter a valid email address.
+              </p>
+            </div>
+
+            <div class="space-y-1">
+              <AdminMemberRecordField
+                :model-value="editableMember.phone"
+                label="Phone"
+                :value="selectedMember.phone"
+                :is-editing="isEditingMember"
+                type="tel"
+                @update:model-value="handleEditablePhoneInput"
+                @paste="handleEditablePhonePaste"
+              />
+              <p
+                v-if="isEditingMember && editableMember.phone.length > 0 && !isEditablePhoneValid"
+                class="text-xs text-(--color-brand-red)"
+              >
+                Enter a valid 10-digit U.S. phone number.
+              </p>
+            </div>
           </div>
         </section>
 
-        <section class="space-y-3 border-t border-(--color-app-border) pt-4">
+        <section class="space-y-3 border-t border-(--color-app-border) pt-5">
           <h3 class="font-condensed text-lg font-semibold text-(--color-brand-navy)">Employment</h3>
 
           <div class="grid gap-3 md:grid-cols-2">
-            <p>
-              <span class="font-medium text-(--color-brand-navy)">Brand:</span>
-              {{ selectedMember.brand || 'None listed' }}
-            </p>
-            <p>
-              <span class="font-medium text-(--color-brand-navy)">Job Title:</span>
-              {{ selectedMember.title || 'None listed' }}
-            </p>
-            <p>
-              <span class="font-medium text-(--color-brand-navy)">Unit Title:</span>
-              {{ selectedMember.unit || 'None listed' }}
-            </p>
-            <p>
-              <span class="font-medium text-(--color-brand-navy)">Location:</span>
-              {{ selectedMember.location || 'None listed' }}
-            </p>
-            <p>
-              <span class="font-medium text-(--color-brand-navy)">Unit Tier:</span>
-              {{ selectedMember.unitTier || 'None listed' }}
-            </p>
+            <AdminMemberRecordField
+              v-model="editableMember.brand"
+              label="Brand"
+              :value="selectedMember.brand"
+              :is-editing="isEditingMember"
+            />
+
+            <AdminMemberRecordField
+              v-model="editableMember.title"
+              label="Job Title"
+              :value="selectedMember.title"
+              :is-editing="isEditingMember"
+            />
+
+            <AdminMemberRecordField
+              v-model="editableMember.unit"
+              label="Unit Title"
+              :value="selectedMember.unit"
+              :is-editing="isEditingMember"
+            />
+
+            <AdminMemberRecordField
+              v-model="editableMember.location"
+              label="Location"
+              :value="selectedMember.location"
+              :is-editing="isEditingMember"
+            />
+
+            <AdminMemberRecordField
+              v-model="editableMember.unitTier"
+              label="Unit Tier"
+              :value="selectedMember.unitTier"
+              :is-editing="isEditingMember"
+            />
           </div>
         </section>
 
-        <section class="space-y-3 border-t border-(--color-app-border) pt-4">
+        <section class="space-y-3 border-t border-(--color-app-border) pt-5">
           <h3 class="font-condensed text-lg font-semibold text-(--color-brand-navy)">Status</h3>
 
           <div class="grid gap-3 md:grid-cols-2">
-            <p>
-              <span class="font-medium text-(--color-brand-navy)">Source:</span>
-              {{ selectedMember.memberSource }}
-            </p>
-            <p>
-              <span class="font-medium text-(--color-brand-navy)">Status:</span>
-              {{ selectedMember.isActive ? 'Active' : 'Inactive' }}
-            </p>
-            <p v-if="!selectedMember.isActive">
-              <span class="font-medium text-(--color-brand-navy)">Inactive Reason:</span>
-              {{ selectedMember.inactiveReason || 'None listed' }}
-            </p>
+            <div class="space-y-1">
+              <span class="font-medium text-(--color-brand-navy)">Source</span>
+              <span class="block rounded bg-slate-100 px-2 py-2 text-sm text-slate-700">
+                {{ selectedMember.memberSource }}
+              </span>
+            </div>
+
+            <label class="space-y-1">
+              <span class="font-medium text-(--color-brand-navy)">Status</span>
+              <select
+                v-if="isEditingMember"
+                v-model="editableMember.isActive"
+                class="h-10 w-full rounded border border-(--color-border) bg-white px-3 text-sm"
+              >
+                <option :value="true">Active</option>
+                <option :value="false">Inactive</option>
+              </select>
+              <span v-else class="block rounded bg-slate-100 px-2 py-2 text-sm text-slate-700">
+                {{ selectedMember.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </label>
+
+            <AdminMemberRecordField
+              v-if="!selectedMember.isActive || !editableMember.isActive"
+              v-model="editableMember.inactiveReason"
+              label="Inactive Reason"
+              :value="selectedMember.inactiveReason"
+              :is-editing="isEditingMember"
+            />
           </div>
         </section>
       </div>
@@ -202,8 +296,8 @@
           <button
             v-if="isEditingMember"
             type="button"
-            class="h-10 rounded border border-(--color-app-border) px-4 text-sm"
-            @click="isEditingMember = false"
+            class="h-10 rounded border border-(--color-app-border) px-4 text-sm hover:cursor-pointer"
+            @click="cancelMemberEdit"
           >
             Cancel
           </button>
@@ -211,8 +305,8 @@
           <button
             v-if="!isEditingMember"
             type="button"
-            class="h-10 rounded bg-(--color-brand-red) px-4 text-sm font-medium text-white"
-            @click="isEditingMember = true"
+            class="h-10 rounded bg-(--color-brand-red) px-4 text-sm font-medium text-white hover:cursor-pointer"
+            @click="startMemberEdit"
           >
             Edit
           </button>
@@ -220,9 +314,11 @@
           <button
             v-else
             type="button"
-            class="h-10 rounded bg-(--color-brand-red) px-4 text-sm font-medium text-white"
+            class="h-10 rounded bg-(--color-brand-red) px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-300"
+            :disabled="!canSaveMemberChanges"
+            @click="saveMemberChanges"
           >
-            Save Changes
+            {{ isSavingMember ? 'Saving…' : 'Save Changes' }}
           </button>
         </div>
       </template>
@@ -232,11 +328,13 @@
 
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, onMounted } from 'vue'
+import { formatPhoneNumber, isValidEmail, isValidOptionalPhone } from '@/utils/memberFormValidation'
 import AdminMemberForm from '@/components/admin/AdminMemberForm.vue'
-import { createAdminMember, fetchAdminMember } from '@/services/adminMembers'
+import { createAdminMember, fetchAdminMember, updateAdminMember } from '@/services/adminMembers'
 import type { AdminEditableMember, AdminMemberPayload, MemberListItem } from '@/types/member'
 import { fetchMemberDirectory } from '@/services/memberDirectory'
 import BaseModal from '@/components/ui/BaseModal.vue'
+import AdminMemberRecordField from '@/components/admin/AdminMemberRecordField.vue'
 
 const isSubmittingMember = ref(false)
 const successMessage = ref<string | null>(null)
@@ -245,9 +343,12 @@ const existingWorkEmails = ref<string[]>([])
 const members = ref<MemberListItem[]>([])
 const memberSearchTerm = ref('')
 const selectedMember = ref<AdminEditableMember | null>(null)
+const editableMember = ref<AdminEditableMember | null>(null)
+const editablePhoneRawValue = ref('')
 const isLoadingSelectedMember = ref(false)
 const isMemberModalOpen = ref(false)
 const isEditingMember = ref(false)
+const isSavingMember = ref(false)
 const memberForm = useTemplateRef<{ resetForm: () => void }>('memberForm')
 
 const filteredMembers = computed(() => {
@@ -270,6 +371,24 @@ const filteredMembers = computed(() => {
     return searchableFields.some((field) => field.toLowerCase().includes(normalizedSearchTerm))
   })
 })
+
+const isEditableWorkEmailValid = computed(() =>
+  editableMember.value ? isValidEmail(editableMember.value.workEmail) : true,
+)
+
+const isEditablePersonalEmailValid = computed(() =>
+  editableMember.value ? isValidEmail(editableMember.value.personalEmail) : true,
+)
+
+const isEditablePhoneValid = computed(() => isValidOptionalPhone(editablePhoneRawValue.value))
+
+const canSaveMemberChanges = computed(
+  () =>
+    isEditableWorkEmailValid.value &&
+    isEditablePersonalEmailValid.value &&
+    isEditablePhoneValid.value &&
+    !isSavingMember.value,
+)
 
 async function addMember(payload: AdminMemberPayload) {
   isSubmittingMember.value = true
@@ -304,6 +423,8 @@ async function selectMember(memberId: string) {
 
   try {
     selectedMember.value = await fetchAdminMember(memberId)
+    editableMember.value = { ...selectedMember.value }
+    editablePhoneRawValue.value = selectedMember.value.phone
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'Unable to load member details.'
     isMemberModalOpen.value = false
@@ -312,10 +433,74 @@ async function selectMember(memberId: string) {
   }
 }
 
+function startMemberEdit() {
+  if (!selectedMember.value) {
+    return
+  }
+
+  editableMember.value = { ...selectedMember.value }
+  editablePhoneRawValue.value = selectedMember.value.phone
+  isEditingMember.value = true
+}
+
+function updateEditablePhone(value: string) {
+  editablePhoneRawValue.value = value
+
+  if (!editableMember.value) {
+    return
+  }
+
+  editableMember.value.phone = formatPhoneNumber(value)
+}
+
+function handleEditablePhoneInput(value: string) {
+  updateEditablePhone(value)
+}
+
+function handleEditablePhonePaste(event: ClipboardEvent) {
+  event.preventDefault()
+
+  const pastedValue = event.clipboardData?.getData('text') ?? ''
+
+  updateEditablePhone(pastedValue)
+}
+
+function cancelMemberEdit() {
+  if (selectedMember.value) {
+    editableMember.value = { ...selectedMember.value }
+    editablePhoneRawValue.value = selectedMember.value.phone
+  }
+
+  isEditingMember.value = false
+}
+
+async function saveMemberChanges() {
+  if (!editableMember.value) {
+    return
+  }
+
+  isSavingMember.value = true
+  errorMessage.value = null
+  successMessage.value = null
+
+  try {
+    await updateAdminMember(editableMember.value)
+    selectedMember.value = { ...editableMember.value }
+    isEditingMember.value = false
+    successMessage.value = 'Member record updated.'
+    await loadMembers()
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : 'Unable to update member record.'
+  } finally {
+    isSavingMember.value = false
+  }
+}
+
 function closeMemberModal() {
   isEditingMember.value = false
   isMemberModalOpen.value = false
   selectedMember.value = null
+  editableMember.value = null
 }
 
 async function loadMembers() {

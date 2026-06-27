@@ -1,10 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
-import type {
-  AdminEditableMember,
-  AdminMemberPayload,
-  AdminMemberUpdatePayload,
-  MemberSource,
-} from '@/types/member'
+import type { AdminEditableMember, AdminMemberPayload, MemberSource } from '@/types/member'
 
 export async function createAdminMember(payload: AdminMemberPayload) {
   const preferredName =
@@ -31,24 +26,28 @@ export async function createAdminMember(payload: AdminMemberPayload) {
   }
 }
 
-export async function updateAdminMember(payload: AdminMemberUpdatePayload) {
-  const preferredName =
-    payload.preferredName.trim() ||
-    `${payload.legalFirstName.trim()} ${payload.legalLastName.trim()}`
-
+export async function updateAdminMember(payload: AdminEditableMember) {
   const { error } = await supabase
     .from('members')
     .update({
+      employee_number: payload.employeeNumber.trim() || null,
+      union_id: payload.unionId.trim() || null,
+      is_active: payload.isActive,
+      inactive_reason: payload.isActive ? null : payload.inactiveReason.trim() || null,
       legal_first_name: payload.legalFirstName.trim(),
       legal_last_name: payload.legalLastName.trim(),
-      preferred_name: preferredName,
+      preferred_name: payload.preferredName.trim() || null,
       preferred_name_source: 'admin',
-      work_email: payload.workEmail.trim(),
+      work_email: payload.workEmail.trim() || null,
       personal_email: payload.personalEmail.trim() || null,
       personal_email_source: 'admin',
       primary_phone: payload.phone.trim() || null,
       primary_phone_source: 'admin',
+      location: payload.location.trim() || null,
       assignment_name: payload.title.trim() || null,
+      unit_title: payload.unit.trim() || null,
+      brand: payload.brand.trim() || null,
+      unit_tier: payload.unitTier.trim() || null,
     })
     .eq('id', payload.id)
 
