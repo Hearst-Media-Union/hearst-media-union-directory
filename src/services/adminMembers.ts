@@ -32,50 +32,33 @@ export async function createAdminMember(payload: AdminMemberPayload) {
 }
 
 export async function updateAdminMember(payload: AdminEditableMember) {
-  const { error } = await supabase
-    .from('members')
-    .update({
-      employee_number: payload.employeeNumber.trim() || null,
-      union_id: payload.unionId.trim() || null,
-      is_active: payload.isActive,
-      inactive_reason: payload.isActive ? null : payload.inactiveReason.trim() || null,
-      legal_first_name: payload.legalFirstName.trim(),
-      legal_last_name: payload.legalLastName.trim(),
-      preferred_name: payload.preferredName.trim() || null,
-      preferred_name_source: 'admin',
-      work_email: payload.workEmail.trim() || null,
-      personal_email: payload.personalEmail.trim() || null,
-      personal_email_source: 'admin',
-      primary_phone: payload.phone.trim() || null,
-      primary_phone_source: 'admin',
-      location: payload.location.trim() || null,
-      assignment_name: payload.title.trim() || null,
-      unit_title: payload.unit.trim() || null,
-      brand: payload.brand.trim() || null,
-      unit_tier: payload.unitTier.trim() || null,
-    })
-    .eq('id', payload.id)
+  const { error } = await supabase.rpc('update_admin_member', {
+    p_member_id: payload.id,
+    p_employee_number: payload.employeeNumber.trim() || null,
+    p_union_id: payload.unionId.trim() || null,
+    p_is_active: payload.isActive,
+    p_inactive_reason: payload.inactiveReason.trim() || null,
+    p_legal_first_name: payload.legalFirstName.trim(),
+    p_legal_last_name: payload.legalLastName.trim(),
+    p_preferred_name: payload.preferredName.trim() || null,
+    p_work_email: payload.workEmail.trim() || null,
+    p_personal_email: payload.personalEmail.trim() || null,
+    p_primary_phone: payload.phone.trim() || null,
+    p_location: payload.location.trim() || null,
+    p_assignment_name: payload.title.trim() || null,
+    p_unit_title: payload.unit.trim() || null,
+    p_brand: payload.brand.trim() || null,
+    p_unit_tier: payload.unitTier.trim() || null,
+    p_annual_salary_or_hourly_rate: payload.annualSalaryOrHourlyRate.trim()
+      ? Number(payload.annualSalaryOrHourlyRate)
+      : null,
+    p_date_of_birth: payload.dateOfBirth.trim() || null,
+    p_gender: payload.gender.trim() || null,
+    p_ethnicity: payload.ethnicity.trim() || null,
+  })
 
   if (error) {
     throw new Error(error.message)
-  }
-
-  const sensitiveDetailsPayload = {
-    member_id: payload.id,
-    annual_salary_or_hourly_rate: payload.annualSalaryOrHourlyRate.trim()
-      ? Number(payload.annualSalaryOrHourlyRate)
-      : null,
-    date_of_birth: payload.dateOfBirth.trim() || null,
-    gender: payload.gender.trim() || null,
-    ethnicity: payload.ethnicity.trim() || null,
-  }
-
-  const { error: sensitiveDetailsError } = await supabase
-    .from('member_sensitive_details')
-    .upsert(sensitiveDetailsPayload, { onConflict: 'member_id' })
-
-  if (sensitiveDetailsError) {
-    throw new Error(sensitiveDetailsError.message)
   }
 }
 
