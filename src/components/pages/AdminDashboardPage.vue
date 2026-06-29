@@ -1,5 +1,5 @@
 <template>
-  <main class="space-y-6">
+  <main class="space-y-6 py-8">
     <section class="space-y-2">
       <p class="font-label text-xs tracking-wide text-(--color-brand-red)">Admin</p>
       <h1 class="font-condensed text-3xl font-semibold text-(--color-brand-navy)">Dashboard</h1>

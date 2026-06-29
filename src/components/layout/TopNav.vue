@@ -142,8 +142,23 @@ const authenticatedNavLinks: NavLink[] = [
   },
 ]
 
+const adminNavLinks: NavLink[] = [
+  {
+    label: 'Admin',
+    to: '/admin',
+  },
+]
+
 const visibleNavLinks = computed(() => {
-  return authStore.isAuthenticated ? authenticatedNavLinks : publicNavLinks
+  if (!authStore.isAuthenticated) {
+    return publicNavLinks
+  }
+
+  if (authStore.isAdmin) {
+    return [...authenticatedNavLinks, ...adminNavLinks]
+  }
+
+  return authenticatedNavLinks
 })
 
 async function signOut() {

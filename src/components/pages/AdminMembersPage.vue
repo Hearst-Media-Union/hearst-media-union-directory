@@ -31,16 +31,14 @@
           <h2 class="font-condensed text-2xl font-semibold text-(--color-brand-navy)">
             Existing Members
           </h2>
-          <p class="text-sm text-slate-600">
-            Browse current member records before editing workflows are added.
-          </p>
+          <p class="text-sm text-slate-600">Browse and edit current member records.</p>
         </div>
 
         <label class="space-y-1 text-sm text-slate-700">
           <span class="font-medium">Search members</span>
           <input
             v-model="memberSearchTerm"
-            class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm md:w-72 ml-2"
+            class="w-full rounded-md border border-slate-300 ml-2 px-3 py-2 text-sm md:w-72"
             type="search"
             placeholder="Search by name, email, brand, or title"
           />
@@ -56,7 +54,7 @@
           v-for="member in filteredMembers"
           :key="member.id"
           type="button"
-          class="grid w-full gap-1 py-3 text-left text-sm hover:bg-slate-50 md:grid-cols-[1.5fr_1fr_1fr]"
+          class="grid w-full cursor-pointer gap-1 rounded-md px-2 py-3 text-left text-sm hover:bg-slate-50 md:grid-cols-[1.5fr_1fr_1fr]"
           @click="selectMember(member.id)"
         >
           <div>
