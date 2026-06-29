@@ -26,7 +26,7 @@ export function normalizeDateValue(value: unknown): string | null {
       return null
     }
 
-    const match = trimmedValue.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
+    const match = trimmedValue.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/)
 
     if (!match) {
       return null
