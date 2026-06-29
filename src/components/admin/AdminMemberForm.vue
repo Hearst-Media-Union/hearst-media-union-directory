@@ -2,10 +2,10 @@
   <section class="rounded-md bg-slate-50 p-5">
     <div class="space-y-1">
       <h2 class="font-condensed text-xl font-semibold text-(--color-brand-navy)">
-        Create WGAE Member
+        {{ heading }}
       </h2>
       <p class="text-sm text-slate-600">
-        Create a member profile that can be linked when the person creates an account.
+        {{ description }}
       </p>
     </div>
 
@@ -111,7 +111,7 @@
           class="h-10 rounded bg-(--color-brand-red) px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-300"
           :disabled="!canSubmitMember"
         >
-          {{ isSubmittingMember ? 'Creating…' : 'Create Member' }}
+          {{ isSubmittingMember ? submittingLabel : submitLabel }}
         </button>
       </div>
     </form>
@@ -120,12 +120,34 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import {
+  formatPhoneNumber,
+  getPhoneDigits,
+  getSuggestedWorkEmailLocalPart,
+  hasInvalidPhoneCharacters,
+  isValidEmail,
+  isValidWorkEmailLocalPart,
+} from '@/utils/memberFormValidation'
 import type { AdminMemberPayload } from '@/types/member'
 
-const props = defineProps<{
-  isSubmittingMember: boolean
-  existingWorkEmails: string[]
-}>()
+const props = withDefaults(
+  defineProps<{
+    isSubmittingMember: boolean
+    existingWorkEmails: string[]
+    heading?: string
+    description?: string
+    submitLabel?: string
+    submittingLabel?: string
+    ignoredWorkEmail?: string | null
+  }>(),
+  {
+    heading: 'Create WGAE Member',
+    description: 'Create a member profile that can be linked when the person creates an account.',
+    submitLabel: 'Create Member',
+    submittingLabel: 'Creating…',
+    ignoredWorkEmail: null,
+  },
+)
 
 const emit = defineEmits<{
   createMember: [payload: AdminMemberPayload]
@@ -140,37 +162,35 @@ const phone = ref('')
 const title = ref('')
 const phoneRawValue = ref('')
 
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-const workEmailLocalPartPattern = /^[a-z0-9._-]+$/
-
 const workEmail = computed(() => `${workEmailLocalPart.value.trim()}@wgaeast.org`)
 
-const workEmailAlreadyExists = computed(() =>
-  props.existingWorkEmails.includes(workEmail.value.trim().toLowerCase()),
+const isWorkEmailLocalPartValid = computed(() =>
+  isValidWorkEmailLocalPart(workEmailLocalPart.value),
 )
 
-const isWorkEmailLocalPartValid = computed(
-  () =>
-    workEmailLocalPart.value.trim().length > 0 &&
-    workEmailLocalPartPattern.test(workEmailLocalPart.value.trim()),
-)
+const isPersonalEmailValid = computed(() => isValidEmail(personalEmail.value))
 
-const hasEditedWorkEmail = ref(false)
+const phoneHasInvalidCharacters = computed(() => hasInvalidPhoneCharacters(phoneRawValue.value))
 
-const isPersonalEmailValid = computed(
-  () => personalEmail.value.trim().length === 0 || emailPattern.test(personalEmail.value.trim()),
-)
-
-const phoneHasInvalidCharacters = computed(() => /[^0-9()+\-\s.]/.test(phoneRawValue.value))
-
-const phoneDigits = computed(() => phoneRawValue.value.replace(/\D/g, '').replace(/^1/, ''))
+const phoneDigits = computed(() => getPhoneDigits(phoneRawValue.value))
 
 const isPhoneValid = computed(
   () =>
     phoneRawValue.value.trim().length === 0 ||
     (!phoneHasInvalidCharacters.value && phoneDigits.value.length === 10),
 )
+
+const workEmailAlreadyExists = computed(() => {
+  const normalizedWorkEmail = workEmail.value.trim().toLowerCase()
+  const normalizedIgnoredWorkEmail = props.ignoredWorkEmail?.trim().toLowerCase() ?? null
+
+  return (
+    normalizedWorkEmail !== normalizedIgnoredWorkEmail &&
+    props.existingWorkEmails.includes(normalizedWorkEmail)
+  )
+})
+
+const hasEditedWorkEmail = ref(false)
 
 const canSubmitMember = computed(
   () =>
@@ -182,17 +202,6 @@ const canSubmitMember = computed(
     isPhoneValid.value &&
     !props.isSubmittingMember,
 )
-
-function getSuggestedWorkEmailLocalPart(firstName: string, lastName: string) {
-  const normalizedFirstName = firstName.trim().toLowerCase()
-  const normalizedLastName = lastName.trim().toLowerCase()
-
-  if (normalizedFirstName.length === 0 || normalizedLastName.length === 0) {
-    return ''
-  }
-
-  return `${normalizedFirstName.charAt(0)}${normalizedLastName}`.replace(/[^a-z0-9._-]/g, '')
-}
 
 function handleWorkEmailInput(event: Event) {
   const target = event.target
@@ -215,21 +224,6 @@ watch([legalFirstName, legalLastName], () => {
     legalLastName.value,
   )
 })
-
-function formatPhoneNumber(nextValue: string) {
-  const digits = nextValue.replace(/\D/g, '').replace(/^1/, '')
-  const visibleDigits = digits.slice(0, 10)
-
-  if (visibleDigits.length <= 3) {
-    return visibleDigits
-  }
-
-  if (visibleDigits.length <= 6) {
-    return `${visibleDigits.slice(0, 3)}-${visibleDigits.slice(3)}`
-  }
-
-  return `1-${visibleDigits.slice(0, 3)}-${visibleDigits.slice(3, 6)}-${visibleDigits.slice(6)}`
-}
 
 function handlePhoneInput(event: Event) {
   const target = event.target
@@ -263,8 +257,21 @@ function resetForm() {
   title.value = ''
 }
 
+function populateForm(payload: AdminMemberPayload) {
+  legalFirstName.value = payload.legalFirstName
+  legalLastName.value = payload.legalLastName
+  preferredName.value = payload.preferredName
+  workEmailLocalPart.value = payload.workEmail.replace(/@wgaeast\.org$/i, '')
+  hasEditedWorkEmail.value = true
+  personalEmail.value = payload.personalEmail
+  phone.value = payload.phone
+  phoneRawValue.value = payload.phone
+  title.value = payload.title
+}
+
 defineExpose({
   resetForm,
+  populateForm,
 })
 
 function submitMember() {

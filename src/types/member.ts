@@ -31,3 +31,25 @@ export interface AdminMemberPayload {
   phone: string
   title: string
 }
+
+export type MemberSource = 'import' | 'admin'
+
+export interface AdminEditableMember {
+  id: string
+  employeeNumber: string
+  unionId: string
+  memberSource: MemberSource
+  isActive: boolean
+  inactiveReason: string
+  legalFirstName: string
+  legalLastName: string
+  preferredName: string
+  workEmail: string
+  personalEmail: string
+  phone: string
+  location: string
+  title: string
+  unit: string
+  brand: string
+  unitTier: string
+}
