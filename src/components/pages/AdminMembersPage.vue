@@ -43,6 +43,15 @@
             placeholder="Search by name, email, brand, or title"
           />
         </label>
+        <label class="flex items-center gap-2 text-sm text-slate-700">
+          <input
+            v-model="includeInactiveMembers"
+            class="h-4 w-4 rounded border-slate-300"
+            type="checkbox"
+            @change="loadMembers"
+          />
+          <span>Show inactive members</span>
+        </label>
       </div>
 
       <p class="text-xs text-slate-500">
@@ -103,9 +112,13 @@
 import { computed, ref, useTemplateRef, onMounted } from 'vue'
 import { formatPhoneNumber, isValidEmail, isValidOptionalPhone } from '@/utils/memberFormValidation'
 import AdminMemberForm from '@/components/admin/AdminMemberForm.vue'
-import { createAdminMember, fetchAdminMember, updateAdminMember } from '@/services/adminMembers'
+import {
+  createAdminMember,
+  fetchAdminMember,
+  fetchAdminMemberDirectory,
+  updateAdminMember,
+} from '@/services/adminMembers'
 import type { AdminEditableMember, AdminMemberPayload, MemberListItem } from '@/types/member'
-import { fetchMemberDirectory } from '@/services/memberDirectory'
 import AdminMemberRecordModal from '@/components/admin/AdminMemberRecordModal.vue'
 
 const isSubmittingMember = ref(false)
@@ -114,6 +127,7 @@ const errorMessage = ref<string | null>(null)
 const existingWorkEmails = ref<string[]>([])
 const members = ref<MemberListItem[]>([])
 const memberSearchTerm = ref('')
+const includeInactiveMembers = ref(false)
 const selectedMember = ref<AdminEditableMember | null>(null)
 const editableMember = ref<AdminEditableMember | null>(null)
 const editablePhoneRawValue = ref('')
@@ -287,7 +301,7 @@ function closeMemberModal() {
 }
 
 async function loadMembers() {
-  members.value = await fetchMemberDirectory()
+  members.value = await fetchAdminMemberDirectory(includeInactiveMembers.value)
 
   existingWorkEmails.value = members.value
     .map((member) => member.email.trim().toLowerCase())

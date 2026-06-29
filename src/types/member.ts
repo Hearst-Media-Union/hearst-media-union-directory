@@ -52,4 +52,8 @@ export interface AdminEditableMember {
   unit: string
   brand: string
   unitTier: string
+  annualSalaryOrHourlyRate: string
+  dateOfBirth: string
+  gender: string
+  ethnicity: string
 }
