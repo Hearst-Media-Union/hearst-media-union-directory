@@ -1,5 +1,10 @@
 import { supabase } from '@/lib/supabaseClient'
-import type { AdminEditableMember, AdminMemberPayload, MemberSource } from '@/types/member'
+import type {
+  AdminEditableMember,
+  AdminMemberPayload,
+  MemberListItem,
+  MemberSource,
+} from '@/types/member'
 
 export async function createAdminMember(payload: AdminMemberPayload) {
   const preferredName =
@@ -54,6 +59,31 @@ export async function updateAdminMember(payload: AdminEditableMember) {
   if (error) {
     throw new Error(error.message)
   }
+
+  const sensitiveDetailsPayload = {
+    member_id: payload.id,
+    annual_salary_or_hourly_rate: payload.annualSalaryOrHourlyRate.trim()
+      ? Number(payload.annualSalaryOrHourlyRate)
+      : null,
+    date_of_birth: payload.dateOfBirth.trim() || null,
+    gender: payload.gender.trim() || null,
+    ethnicity: payload.ethnicity.trim() || null,
+  }
+
+  const { error: sensitiveDetailsError } = await supabase
+    .from('member_sensitive_details')
+    .upsert(sensitiveDetailsPayload, { onConflict: 'member_id' })
+
+  if (sensitiveDetailsError) {
+    throw new Error(sensitiveDetailsError.message)
+  }
+}
+
+type AdminEditableMemberSensitiveDetailsRow = {
+  annual_salary_or_hourly_rate: number | null
+  date_of_birth: string | null
+  gender: string | null
+  ethnicity: string | null
 }
 
 type AdminEditableMemberRow = {
@@ -74,6 +104,7 @@ type AdminEditableMemberRow = {
   unit_title: string | null
   brand: string | null
   unit_tier: string | null
+  member_sensitive_details: AdminEditableMemberSensitiveDetailsRow[] | null
 }
 
 function mapAdminEditableMember(row: AdminEditableMemberRow): AdminEditableMember {
@@ -95,6 +126,29 @@ function mapAdminEditableMember(row: AdminEditableMemberRow): AdminEditableMembe
     unit: row.unit_title || '',
     brand: row.brand || '',
     unitTier: row.unit_tier || '',
+    annualSalaryOrHourlyRate:
+      row.member_sensitive_details?.[0]?.annual_salary_or_hourly_rate?.toString() || '',
+    dateOfBirth: row.member_sensitive_details?.[0]?.date_of_birth || '',
+    gender: row.member_sensitive_details?.[0]?.gender || '',
+    ethnicity: row.member_sensitive_details?.[0]?.ethnicity || '',
+  }
+}
+
+function getAdminMemberDisplayName(member: AdminEditableMemberRow) {
+  return member.preferred_name || `${member.legal_first_name} ${member.legal_last_name}`
+}
+
+function mapAdminMemberListItem(row: AdminEditableMemberRow): MemberListItem {
+  return {
+    id: row.id,
+    name: getAdminMemberDisplayName(row),
+    email: row.work_email || '',
+    phone: row.primary_phone || '',
+    brand: row.brand || '',
+    title: row.assignment_name || '',
+    unit: row.unit_title || '',
+    area: row.location || '',
+    committees: [],
   }
 }
 
@@ -129,5 +183,65 @@ export async function fetchAdminMember(memberId: string) {
     throw new Error(error.message)
   }
 
-  return mapAdminEditableMember(data as AdminEditableMemberRow)
+  const { data: sensitiveDetailsData, error: sensitiveDetailsError } = await supabase
+    .from('member_sensitive_details')
+    .select(
+      `
+        annual_salary_or_hourly_rate,
+        date_of_birth,
+        gender,
+        ethnicity
+      `,
+    )
+    .eq('member_id', memberId)
+    .maybeSingle()
+
+  if (sensitiveDetailsError) {
+    throw new Error(sensitiveDetailsError.message)
+  }
+
+  return mapAdminEditableMember({
+    ...(data as Omit<AdminEditableMemberRow, 'member_sensitive_details'>),
+    member_sensitive_details: sensitiveDetailsData ? [sensitiveDetailsData] : null,
+  })
+}
+
+export async function fetchAdminMemberDirectory(includeInactiveMembers: boolean) {
+  let query = supabase
+    .from('members')
+    .select(
+      `
+        id,
+        employee_number,
+        union_id,
+        member_source,
+        is_active,
+        inactive_reason,
+        legal_first_name,
+        legal_last_name,
+        preferred_name,
+        work_email,
+        personal_email,
+        primary_phone,
+        location,
+        assignment_name,
+        unit_title,
+        brand,
+        unit_tier
+      `,
+    )
+    .order('legal_last_name', { ascending: true })
+    .order('legal_first_name', { ascending: true })
+
+  if (!includeInactiveMembers) {
+    query = query.eq('is_active', true)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return ((data ?? []) as AdminEditableMemberRow[]).map(mapAdminMemberListItem)
 }

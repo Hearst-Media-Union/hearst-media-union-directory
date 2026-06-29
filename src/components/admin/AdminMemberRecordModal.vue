@@ -1,5 +1,5 @@
 <template>
-  <BaseModal :is-open="isOpen" labelled-by="admin-member-modal-title" @close="emit('close')">
+  <BaseModal :is-open="isOpen" labelled-by="admin-member-modal-title" @close="closeModal">
     <template #header>
       <div class="flex items-start justify-between gap-4">
         <div>
@@ -15,7 +15,7 @@
         <button
           type="button"
           class="text-sm font-medium text-slate-600 hover:cursor-pointer hover:text-(--color-brand-navy)"
-          @click="emit('close')"
+          @click="closeModal"
         >
           Close
         </button>
@@ -176,6 +176,65 @@
       </section>
 
       <section class="space-y-3 border-t border-(--color-app-border) pt-5">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h3 class="font-condensed text-lg font-semibold text-(--color-brand-navy)">
+              Sensitive Information
+            </h3>
+            <p class="text-xs text-slate-500">Hidden by default.</p>
+          </div>
+
+          <button
+            type="button"
+            class="text-sm font-medium text-slate-600 hover:cursor-pointer hover:text-(--color-brand-navy)"
+            @click="isSensitiveInformationVisible = !isSensitiveInformationVisible"
+          >
+            {{
+              isSensitiveInformationVisible
+                ? 'Hide sensitive information'
+                : 'Show sensitive information'
+            }}
+          </button>
+        </div>
+
+        <div v-if="isSensitiveInformationVisible" class="grid gap-3 md:grid-cols-2">
+          <AdminMemberRecordField
+            :model-value="editableMember.annualSalaryOrHourlyRate"
+            label="Salary / Rate"
+            :value="formatCurrencyDisplayValue(selectedMember.annualSalaryOrHourlyRate)"
+            :is-editing="isEditing"
+            type="number"
+            @update:model-value="updateField('annualSalaryOrHourlyRate', $event)"
+          />
+
+          <AdminMemberRecordField
+            :model-value="editableMember.dateOfBirth"
+            label="Date of Birth"
+            :value="selectedMember.dateOfBirth"
+            :is-editing="isEditing"
+            type="date"
+            @update:model-value="updateField('dateOfBirth', $event)"
+          />
+
+          <AdminMemberRecordField
+            :model-value="editableMember.gender"
+            label="Gender"
+            :value="selectedMember.gender"
+            :is-editing="isEditing"
+            @update:model-value="updateField('gender', $event)"
+          />
+
+          <AdminMemberRecordField
+            :model-value="editableMember.ethnicity"
+            label="Ethnicity"
+            :value="selectedMember.ethnicity"
+            :is-editing="isEditing"
+            @update:model-value="updateField('ethnicity', $event)"
+          />
+        </div>
+      </section>
+
+      <section class="space-y-3 border-t border-(--color-app-border) pt-5">
         <h3 class="font-condensed text-lg font-semibold text-(--color-brand-navy)">Status</h3>
 
         <div class="grid gap-3 md:grid-cols-2">
@@ -249,6 +308,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import BaseModal from '@/components/ui/BaseModal.vue'
 import AdminMemberRecordField from '@/components/admin/AdminMemberRecordField.vue'
 import type { AdminEditableMember } from '@/types/member'
@@ -276,6 +336,28 @@ const emit = defineEmits<{
   'update-phone': [value: string]
   'paste-phone': [event: ClipboardEvent]
 }>()
+
+const isSensitiveInformationVisible = ref(false)
+
+function closeModal() {
+  isSensitiveInformationVisible.value = false
+  emit('close')
+}
+
+function formatCurrencyDisplayValue(value: string) {
+  const numericValue = Number(value)
+
+  if (!value.trim() || Number.isNaN(numericValue)) {
+    return ''
+  }
+
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(numericValue)
+}
 
 function updateField(field: keyof AdminEditableMember, value: string) {
   emit('update-member-field', field, value)
