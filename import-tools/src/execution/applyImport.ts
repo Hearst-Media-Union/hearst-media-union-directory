@@ -264,6 +264,10 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
         unitTitle: member.unit_title,
         brand: member.brand,
         unitTier: member.unit_tier,
+        dateOfBirth: null,
+        gender: null,
+        ethnicity: null,
+        annualSalaryOrHourlyRate: null,
       })
     }
   }

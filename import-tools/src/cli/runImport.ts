@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { getExistingMembers } from '../adapters/getExistingMembers.js'
 import { buildDryRunReport } from '../engine/buildDryRunReport.js'
 import { applyImport } from '../execution/applyImport.js'
@@ -157,7 +158,7 @@ function logSampleCoreMemberFieldUpdates(
       newValue: string | null
     }[]
   }[],
-  limit = 3,
+  limit = 50,
 ): void {
   console.log('core member field updates:')
 
@@ -180,7 +181,7 @@ function logSampleSensitiveDetailUpdates(
     employeeNumber: string
     updates: { field: string; newValue: string | number | null }[]
   }[],
-  limit = 3,
+  limit = 50,
 ): void {
   console.log('sensitive detail updates:')
 

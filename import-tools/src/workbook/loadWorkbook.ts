@@ -48,10 +48,16 @@ export function loadWorkbook(filePath: string): LoadedWorkbook {
   const workbook = XLSX.readFile(filePath)
   const sheetNames = workbook.SheetNames
 
-  const activeSheetName = sheetNames.find((sheetName) => sheetName.trim() === 'Employee Data')
+  const activeSheetName = sheetNames.find((sheetName) => {
+    const normalizedSheetName = sheetName.trim().toLowerCase()
+
+    return normalizedSheetName === 'employee data' || normalizedSheetName === 'ee data'
+  })
 
   if (!activeSheetName) {
-    throw new Error(`Missing required sheet: Employee Data. Found: ${sheetNames.join(', ')}`)
+    throw new Error(
+      `Missing required active employee sheet. Expected Employee Data or EE Data. Found: ${sheetNames.join(', ')}`,
+    )
   }
 
   const leaversSheetName = findLeaversSheetName(sheetNames)
