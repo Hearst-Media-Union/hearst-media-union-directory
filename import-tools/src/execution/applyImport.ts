@@ -3,6 +3,7 @@ import { loadWorkbook } from '../workbook/loadWorkbook.js'
 import { mapActiveRow } from '../mapping/mapImportRow.js'
 import { getExistingMembers } from '../adapters/getExistingMembers.js'
 import { mapLeaverRow, mapPromotionRow } from '../mapping/mapImportRow.js'
+import type { ExistingMemberRecord } from '../adapters/buildExistingMemberLookup.js'
 
 export type ImportExecutionMode = 'dry_run' | 'apply'
 
@@ -110,9 +111,16 @@ function buildPromotionSnapshots(
   }))
 }
 
+function valuesAreDifferent(
+  currentValue: string | number | null,
+  nextValue: string | number | null,
+): boolean {
+  return currentValue !== nextValue
+}
+
 function buildSensitiveDetailRows(
   activeRows: ReturnType<typeof mapActiveRow>[],
-  existingByEmployeeNumber: Map<string, { memberId: string }>,
+  existingByEmployeeNumber: Map<string, ExistingMemberRecord>,
 ) {
   return activeRows
     .filter((row) => row.employeeNumber)
@@ -120,6 +128,16 @@ function buildSensitiveDetailRows(
       const existing = existingByEmployeeNumber.get(row.employeeNumber!)
 
       if (!existing) {
+        return null
+      }
+
+      const hasSensitiveDetailChange =
+        valuesAreDifferent(existing.annualSalaryOrHourlyRate, row.annualSalaryOrHourlyRate) ||
+        valuesAreDifferent(existing.dateOfBirth, row.dateOfBirth) ||
+        valuesAreDifferent(existing.gender, row.gender) ||
+        valuesAreDifferent(existing.ethnicity, row.ethnicity)
+
+      if (!hasSensitiveDetailChange) {
         return null
       }
 
@@ -264,6 +282,10 @@ export async function applyImport(input: ApplyImportInput): Promise<ApplyImportS
         unitTitle: member.unit_title,
         brand: member.brand,
         unitTier: member.unit_tier,
+        dateOfBirth: null,
+        gender: null,
+        ethnicity: null,
+        annualSalaryOrHourlyRate: null,
       })
     }
   }

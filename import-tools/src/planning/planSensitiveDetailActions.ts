@@ -26,6 +26,13 @@ export type SensitiveDetailActionPlan = {
   }
 }
 
+function valuesAreDifferent(
+  currentValue: string | number | null,
+  nextValue: string | number | null,
+): boolean {
+  return currentValue !== nextValue
+}
+
 export function planSensitiveDetailActions(
   memberActionPlan: MemberActionPlan,
 ): SensitiveDetailActionPlan {
@@ -35,28 +42,29 @@ export function planSensitiveDetailActions(
     const updates: SensitiveFieldUpdate[] = []
 
     const row = action.row
+    const existingMember = action.existingMember
 
-    if (row.workEmail !== undefined) {
+    if (valuesAreDifferent(existingMember.workEmail, row.workEmail)) {
       updates.push({ field: 'workEmail', newValue: row.workEmail })
     }
 
-    if (row.primaryPhone !== undefined) {
+    if (valuesAreDifferent(existingMember.primaryPhone, row.primaryPhone)) {
       updates.push({ field: 'primaryPhone', newValue: row.primaryPhone })
     }
 
-    if (row.dateOfBirth !== undefined) {
+    if (valuesAreDifferent(existingMember.dateOfBirth, row.dateOfBirth)) {
       updates.push({ field: 'dateOfBirth', newValue: row.dateOfBirth })
     }
 
-    if (row.gender !== undefined) {
+    if (valuesAreDifferent(existingMember.gender, row.gender)) {
       updates.push({ field: 'gender', newValue: row.gender })
     }
 
-    if (row.ethnicity !== undefined) {
+    if (valuesAreDifferent(existingMember.ethnicity, row.ethnicity)) {
       updates.push({ field: 'ethnicity', newValue: row.ethnicity })
     }
 
-    if (row.annualSalaryOrHourlyRate !== undefined) {
+    if (valuesAreDifferent(existingMember.annualSalaryOrHourlyRate, row.annualSalaryOrHourlyRate)) {
       updates.push({
         field: 'annualSalaryOrHourlyRate',
         newValue: row.annualSalaryOrHourlyRate,

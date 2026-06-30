@@ -1,4 +1,8 @@
-import type { ActiveImportRow, LeaverImportRow, PromotionImportRow } from '../mapping/mapImportRow.js'
+import type {
+  ActiveImportRow,
+  LeaverImportRow,
+  PromotionImportRow,
+} from '../mapping/mapImportRow.js'
 
 export type ExistingMemberRecord = {
   memberId: string
@@ -14,6 +18,10 @@ export type ExistingMemberRecord = {
   unitTitle: string | null
   brand: string | null
   unitTier: string | null
+  dateOfBirth: string | null
+  gender: string | null
+  ethnicity: string | null
+  annualSalaryOrHourlyRate: number | null
 }
 
 export type ExistingMemberLookup = Map<string, ExistingMemberRecord>
@@ -50,6 +58,10 @@ function buildExistingMemberFromActiveRow(
     unitTitle: row.unitTitle,
     brand: row.brand,
     unitTier: row.unitTier,
+    dateOfBirth: null,
+    gender: null,
+    ethnicity: null,
+    annualSalaryOrHourlyRate: null,
   }
 }
 
@@ -75,6 +87,10 @@ function buildExistingMemberFromLeaverRow(
     unitTitle: row.unitTitle,
     brand: row.brand,
     unitTier: row.unitTier,
+    dateOfBirth: null,
+    gender: null,
+    ethnicity: null,
+    annualSalaryOrHourlyRate: null,
   }
 }
 
@@ -100,6 +116,10 @@ function buildExistingMemberFromPromotionRow(
     unitTitle: row.newTitle,
     brand: row.brand,
     unitTier: null,
+    dateOfBirth: null,
+    gender: null,
+    ethnicity: null,
+    annualSalaryOrHourlyRate: null,
   }
 }
 

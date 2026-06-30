@@ -8,6 +8,14 @@ type WorksheetRowsInput = {
   promotions: Record<string, unknown>[]
 }
 
+type MemberSensitiveDetailsRow = {
+  member_id: string
+  annual_salary_or_hourly_rate: number | null
+  date_of_birth: string | null
+  gender: string | null
+  ethnicity: string | null
+}
+
 type MemberRow = {
   id: string
   employee_number: string
@@ -25,13 +33,25 @@ type MemberRow = {
 }
 
 const supabaseUrl = process.env.SUPABASE_URL
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-if (!supabaseUrl || !supabaseServiceRoleKey) {
-  throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
+const missingVariables: string[] = []
+
+if (!supabaseUrl) {
+  missingVariables.push('SUPABASE_URL')
 }
 
-const supabase = createClient(supabaseUrl, supabaseServiceRoleKey)
+if (!serviceRoleKey) {
+  missingVariables.push('SUPABASE_SERVICE_ROLE_KEY')
+}
+
+if (!supabaseUrl || !serviceRoleKey) {
+  throw new Error(
+    `Missing required environment variables:\n\n- ${missingVariables.join('\n- ')}\n\nCreate a .env file in the import-tools directory and define these values before running the importer.`,
+  )
+}
+
+const supabase = createClient(supabaseUrl, serviceRoleKey)
 
 function collectEmployeeNumbers(rows: WorksheetRowsInput): string[] {
   const employeeNumbers = new Set<string>()
@@ -57,7 +77,12 @@ function collectEmployeeNumbers(rows: WorksheetRowsInput): string[] {
   return Array.from(employeeNumbers)
 }
 
-function mapMemberRowToExistingMemberRecord(row: MemberRow): ExistingMemberRecord {
+function mapMemberRowToExistingMemberRecord(
+  row: MemberRow,
+  sensitiveDetailsByMemberId: Map<string, MemberSensitiveDetailsRow>,
+): ExistingMemberRecord {
+  const sensitiveDetails = sensitiveDetailsByMemberId.get(row.id)
+
   return {
     memberId: row.id,
     employeeNumber: row.employee_number,
@@ -72,7 +97,21 @@ function mapMemberRowToExistingMemberRecord(row: MemberRow): ExistingMemberRecor
     unitTitle: row.unit_title,
     brand: row.brand,
     unitTier: row.unit_tier,
+    dateOfBirth: sensitiveDetails?.date_of_birth ?? null,
+    gender: sensitiveDetails?.gender ?? null,
+    ethnicity: sensitiveDetails?.ethnicity ?? null,
+    annualSalaryOrHourlyRate: sensitiveDetails?.annual_salary_or_hourly_rate ?? null,
   }
+}
+
+function chunkValues<T>(values: T[], size: number): T[][] {
+  const chunks: T[][] = []
+
+  for (let index = 0; index < values.length; index += size) {
+    chunks.push(values.slice(index, index + size))
+  }
+
+  return chunks
 }
 
 export async function getExistingMembers(
@@ -111,5 +150,42 @@ export async function getExistingMembers(
 
   const memberRows = (data ?? []) as MemberRow[]
 
-  return memberRows.map(mapMemberRowToExistingMemberRecord)
+  const memberIds = memberRows.map((member) => member.id)
+
+  if (memberIds.length === 0) {
+    return []
+  }
+
+  const sensitiveDetailsRows: MemberSensitiveDetailsRow[] = []
+
+  for (const memberIdChunk of chunkValues(memberIds, 100)) {
+    const { data: sensitiveDetailsData, error: sensitiveDetailsError } = await supabase
+      .from('member_sensitive_details')
+      .select(
+        `
+        member_id,
+        annual_salary_or_hourly_rate,
+        date_of_birth,
+        gender,
+        ethnicity
+      `,
+      )
+      .in('member_id', memberIdChunk)
+
+    if (sensitiveDetailsError) {
+      throw new Error(
+        `Failed to fetch existing member sensitive details: ${sensitiveDetailsError.message}`,
+      )
+    }
+
+    sensitiveDetailsRows.push(...((sensitiveDetailsData ?? []) as MemberSensitiveDetailsRow[]))
+  }
+
+  const sensitiveDetailsByMemberId = new Map(
+    sensitiveDetailsRows.map((row) => [row.member_id, row]),
+  )
+
+  return memberRows.map((memberRow) =>
+    mapMemberRowToExistingMemberRecord(memberRow, sensitiveDetailsByMemberId),
+  )
 }
