@@ -11,6 +11,7 @@ const DEBUG = false
 
 const filePath = process.argv[2]
 const modeArg = process.argv[3] ?? 'dry_run'
+const monthLabelArg = process.argv[4]
 
 if (!filePath) {
   console.error('Usage: npm run dev <path-to-xlsx> [dry_run|apply]')
@@ -19,6 +20,13 @@ if (!filePath) {
 
 if (modeArg !== 'dry_run' && modeArg !== 'apply') {
   console.error('Mode must be either "dry_run" or "apply"')
+  process.exit(1)
+}
+
+if (modeArg === 'apply' && !monthLabelArg) {
+  console.error(
+    'Apply mode requires a month label.\n\nExample:\nnpm run dev -- workbook.xlsx apply 2026-05',
+  )
   process.exit(1)
 }
 
@@ -223,7 +231,7 @@ async function main(): Promise<void> {
       const applySummary = await applyImport({
         workbookPath: filePath,
         sourceFilename: filePath.split('/').pop() ?? filePath,
-        monthLabel: new Date().toISOString().slice(0, 7),
+        monthLabel: monthLabelArg!,
       })
 
       console.log('Apply summary:')
