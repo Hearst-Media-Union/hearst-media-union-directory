@@ -10,6 +10,7 @@ import HelpPage from '@/components/pages/HelpPage.vue'
 import ContactPage from '@/components/pages/ContactPage.vue'
 import AuthConfirmedPage from '@/components/pages/AuthConfirmedPage.vue'
 import AdminDashboardPage from '@/components/pages/AdminDashboardPage.vue'
+import AdminImportDashboardPage from '@/components/pages/AdminImportDashboardPage.vue'
 import AdminMembersPage from '@/components/pages/AdminMembersPage.vue'
 import AdminRepresentationPage from '@/components/pages/AdminRepresentationPage.vue'
 import AdminCommitteeMembershipPage from '@/components/pages/AdminCommitteeMembershipPage.vue'
@@ -93,6 +94,15 @@ const router = createRouter({
       path: '/admin',
       name: 'admin',
       component: AdminDashboardPage,
+      meta: {
+        requiresAuth: true,
+        requiresAdmin: true,
+      },
+    },
+    {
+      path: '/admin/imports',
+      name: 'admin-imports',
+      component: AdminImportDashboardPage,
       meta: {
         requiresAuth: true,
         requiresAdmin: true,
