@@ -60,7 +60,8 @@ const adminSections: AdminSection[] = [
   },
   {
     title: 'Imports',
-    description: 'Future tools for reviewing import runs and related history.',
+    description: 'Review member imports, dry runs, and import history.',
+    route: '/admin/imports',
   },
 ]
 </script>
