@@ -12,7 +12,8 @@
     "lint": "run-s lint:*",
     "lint:oxlint": "oxlint . --fix",
     "lint:eslint": "eslint . --fix --cache",
-    "format": "prettier --write --experimental-cli src/"
+    "format": "prettier --write --experimental-cli src/",
+    "prepare:import-function": "npm --prefix import-tools run build && rm -rf supabase/functions/_shared/import-engine && mkdir -p supabase/functions/_shared/import-engine && cp -R import-tools/dist/. supabase/functions/_shared/import-engine/"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",
