@@ -1,6 +1,8 @@
 {
   "nodeModulesDir": "auto",
   "imports": {
+    "@supabase/functions-js/edge-runtime.d.ts": "npm:@supabase/functions-js/edge-runtime.d.ts",
+    "@supabase/server": "npm:@supabase/server",
     "xlsx": "npm:xlsx@0.18.5"
   }
 }

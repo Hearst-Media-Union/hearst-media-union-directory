@@ -38,10 +38,11 @@
           <div class="flex flex-wrap gap-2">
             <button
               type="button"
-              class="rounded-md bg-(--color-brand-red) px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-300"
-              disabled
+              class="rounded-md bg-(--color-brand-red) px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-300 hover:cursor-pointer"
+              :disabled="isRunningDryRun"
+              @click="runDryRun"
             >
-              Run Dry Run
+              {{ isRunningDryRun ? 'Running Dry Run…' : 'Run Dry Run' }}
             </button>
 
             <button
@@ -73,12 +74,43 @@
         <p class="mt-4 text-xs font-medium text-slate-500">Coming later</p>
       </article>
     </section>
+    <p
+      v-if="dryRunError"
+      class="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+    >
+      {{ dryRunError }}
+    </p>
+
+    <section
+      v-if="dryRunResult"
+      class="mt-6 rounded-lg border border-(--color-border) bg-white p-5 shadow-sm"
+    >
+      <h2 class="font-condensed text-xl font-semibold text-(--color-brand-navy)">
+        Dry-Run Response
+      </h2>
+
+      <pre class="mt-4 max-h-128 overflow-auto rounded-md bg-slate-950 p-4 text-xs text-white">{{
+        JSON.stringify(dryRunResult, null, 2)
+      }}</pre>
+    </section>
   </main>
 </template>
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { supabase } from '@/lib/supabaseClient'
+
+type DryRunResponse = {
+  workbookFile: {
+    name: string
+    size: number
+  }
+  report: Record<string, unknown>
+}
 
 const selectedWorkbook = ref<File | null>(null)
+const isRunningDryRun = ref(false)
+const dryRunError = ref('')
+const dryRunResult = ref<DryRunResponse | null>(null)
 
 const selectedWorkbookName = computed(() => selectedWorkbook.value?.name ?? '')
 
@@ -110,9 +142,46 @@ function handleWorkbookChange(event: Event) {
   }
 
   selectedWorkbook.value = input.files?.[0] ?? null
+  dryRunError.value = ''
+  dryRunResult.value = null
 }
 
 function clearSelectedWorkbook() {
   selectedWorkbook.value = null
+  dryRunError.value = ''
+  dryRunResult.value = null
+}
+
+async function runDryRun() {
+  if (!selectedWorkbook.value || isRunningDryRun.value) {
+    return
+  }
+
+  isRunningDryRun.value = true
+  dryRunError.value = ''
+  dryRunResult.value = null
+
+  const formData = new FormData()
+  formData.append('workbook', selectedWorkbook.value)
+
+  try {
+    const { data, error } = await supabase.functions.invoke<DryRunResponse>('import-dry-run', {
+      body: formData,
+    })
+
+    if (error) {
+      throw error
+    }
+
+    if (!data) {
+      throw new Error('The dry run completed without returning a report.')
+    }
+
+    dryRunResult.value = data
+  } catch (error: unknown) {
+    dryRunError.value = error instanceof Error ? error.message : 'Unable to complete the dry run.'
+  } finally {
+    isRunningDryRun.value = false
+  }
 }
 </script>
