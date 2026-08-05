@@ -44,8 +44,7 @@ function parseSheetRows(sheet: XLSX.WorkSheet | undefined): Record<string, unkno
   })
 }
 
-export function loadWorkbook(filePath: string): LoadedWorkbook {
-  const workbook = XLSX.readFile(filePath)
+function loadParsedWorkbook(workbook: XLSX.WorkBook): LoadedWorkbook {
   const sheetNames = workbook.SheetNames
 
   const activeSheetName = sheetNames.find((sheetName) => {
@@ -70,7 +69,6 @@ export function loadWorkbook(filePath: string): LoadedWorkbook {
   }
 
   const leaversSheet = leaversSheetName ? workbook.Sheets[leaversSheetName] : undefined
-
   const promotionsSheet = promotionsSheetName ? workbook.Sheets[promotionsSheetName] : undefined
 
   return {
@@ -92,4 +90,12 @@ export function loadWorkbook(filePath: string): LoadedWorkbook {
       promotions: promotionsSheetName,
     },
   }
+}
+
+export function loadWorkbook(filePath: string): LoadedWorkbook {
+  return loadParsedWorkbook(XLSX.readFile(filePath))
+}
+
+export function loadWorkbookFromBuffer(buffer: Uint8Array): LoadedWorkbook {
+  return loadParsedWorkbook(XLSX.read(buffer, { type: 'array' }))
 }

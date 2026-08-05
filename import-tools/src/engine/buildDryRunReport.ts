@@ -10,9 +10,13 @@ import { detectCrossSheetOverlaps } from '../validation/detectCrossSheetOverlaps
 import { detectDuplicateEmployeeNumbers } from '../validation/detectDuplicateEmployeeNumbers.js'
 import { filterValidMappedRows } from '../validation/filterValidMappedRows.js'
 import { validateMappedRows } from '../validation/validateMappedRows.js'
-import { loadWorkbook } from '../workbook/loadWorkbook.js'
+import { loadWorkbook, loadWorkbookFromBuffer } from '../workbook/loadWorkbook.js'
 import type { ExistingMemberRecord } from '../adapters/buildExistingMemberLookup.js'
-import type { ExistingWorksheetRows, MatchedSheetNames, WorkbookSheets } from '../workbook/loadWorkbook.js'
+import type {
+  ExistingWorksheetRows,
+  MatchedSheetNames,
+  WorkbookSheets,
+} from '../workbook/loadWorkbook.js'
 import type { MappedImportRows } from '../mapping/mapImportRows.js'
 import type { DedupedMappedRows } from '../validation/dedupeMappedRows.js'
 import type { MemberUpdateAction, MemberInactivateAction } from '../planning/planMemberActions.js'
@@ -72,11 +76,11 @@ export type DryRunReport = {
   }
 }
 
-export function buildDryRunReport(
-  filePath: string,
+function buildReportFromWorkbook(
+  workbook: ReturnType<typeof loadWorkbook>,
   existingMembers: ExistingMemberRecord[],
 ): DryRunReport {
-  const { sheetNames, matchedSheetNames, rows, sheets } = loadWorkbook(filePath)
+  const { sheetNames, matchedSheetNames, rows, sheets } = workbook
 
   const mappedRows = mapImportRows(rows)
   const validation = validateMappedRows(mappedRows)
@@ -148,4 +152,18 @@ export function buildDryRunReport(
       dedupedRows,
     },
   }
+}
+
+export function buildDryRunReport(
+  filePath: string,
+  existingMembers: ExistingMemberRecord[],
+): DryRunReport {
+  return buildReportFromWorkbook(loadWorkbook(filePath), existingMembers)
+}
+
+export function buildDryRunReportFromBuffer(
+  buffer: Uint8Array,
+  existingMembers: ExistingMemberRecord[],
+): DryRunReport {
+  return buildReportFromWorkbook(loadWorkbookFromBuffer(buffer), existingMembers)
 }

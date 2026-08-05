@@ -1,0 +1,213 @@
+import 'dotenv/config';
+import { getExistingMembers } from '../adapters/getExistingMembers.js';
+import { buildDryRunReport } from '../engine/buildDryRunReport.js';
+import { applyImport } from '../execution/applyImport.js';
+import { mapActiveRow, mapLeaverRow, mapPromotionRow } from '../mapping/mapImportRow.js';
+import { normalizeRow } from '../normalize/normalizeRow.js';
+import { getSheetHeaders } from '../workbook/getSheetHeaders.js';
+import { loadWorkbook } from '../workbook/loadWorkbook.js';
+const DEBUG = false;
+const filePath = process.argv[2];
+const modeArg = process.argv[3] ?? 'dry_run';
+const monthLabelArg = process.argv[4];
+if (!filePath) {
+    console.error('Usage: npm run dev <path-to-xlsx> [dry_run|apply]');
+    process.exit(1);
+}
+if (modeArg !== 'dry_run' && modeArg !== 'apply') {
+    console.error('Mode must be either "dry_run" or "apply"');
+    process.exit(1);
+}
+if (modeArg === 'apply' && !monthLabelArg) {
+    console.error('Apply mode requires a month label.\n\nExample:\nnpm run dev -- workbook.xlsx apply 2026-05');
+    process.exit(1);
+}
+function logSampleRow(label, rows) {
+    console.log(`${label}:`);
+    if (rows.length === 0) {
+        console.log('not present or no data');
+        return;
+    }
+    console.dir(rows[0], { depth: null });
+}
+function logHeaders(label, headers) {
+    console.log(`${label}:`);
+    if (headers.length === 0) {
+        console.log('not present or no headers');
+        return;
+    }
+    console.log(headers);
+}
+function logNormalizedSampleRow(label, rows) {
+    console.log(`${label}:`);
+    if (rows.length === 0) {
+        console.log('not present or no data');
+        return;
+    }
+    console.dir(normalizeRow(rows[0]), { depth: null });
+}
+function logMappedActiveSampleRow(rows) {
+    console.log('active:');
+    if (rows.length === 0) {
+        console.log('not present or no data');
+        return;
+    }
+    console.dir(mapActiveRow(rows[0]), { depth: null });
+}
+function logMappedLeaverSampleRow(rows) {
+    console.log('leavers:');
+    if (rows.length === 0) {
+        console.log('not present or no data');
+        return;
+    }
+    console.dir(mapLeaverRow(rows[0]), { depth: null });
+}
+function logMappedPromotionSampleRow(rows) {
+    console.log('promotions:');
+    if (rows.length === 0) {
+        console.log('not present or no data');
+        return;
+    }
+    console.dir(mapPromotionRow(rows[0]), { depth: null });
+}
+function logSampleMemberUpdates(items, limit = 3) {
+    console.log('member updates:');
+    if (items.length === 0) {
+        console.log('none');
+        return;
+    }
+    console.table(items.slice(0, limit).map((item) => ({
+        employeeNumber: item.employeeNumber,
+        existingMemberId: item.existingMember.memberId,
+        existingIsActive: item.existingMember.isActive,
+        assignmentName: item.row.assignmentName,
+        unitTitle: item.row.unitTitle,
+        brand: item.row.brand,
+    })));
+}
+function logSampleMemberInactivations(items, limit = 3) {
+    console.log('member inactivations:');
+    if (items.length === 0) {
+        console.log('none');
+        return;
+    }
+    console.table(items.slice(0, limit).map((item) => ({
+        employeeNumber: item.employeeNumber,
+        reason: item.reason,
+        inactiveAt: item.row.inactiveAt,
+    })));
+}
+function logSampleCoreMemberFieldUpdates(items, limit = 50) {
+    console.log('core member field updates:');
+    if (items.length === 0) {
+        console.log('none');
+        return;
+    }
+    console.table(items.slice(0, limit).map((item) => ({
+        employeeNumber: item.employeeNumber,
+        updateCount: item.updates.length,
+        fields: item.updates.map((update) => update.field).join(', '),
+    })));
+}
+function logSampleSensitiveDetailUpdates(items, limit = 50) {
+    console.log('sensitive detail updates:');
+    if (items.length === 0) {
+        console.log('none');
+        return;
+    }
+    console.table(items.slice(0, limit).map((item) => ({
+        employeeNumber: item.employeeNumber,
+        updateCount: item.updates.length,
+        fields: item.updates.map((update) => update.field).join(', '),
+    })));
+}
+function logSampleHistoryRows(items, limit = 3) {
+    console.log('history rows:');
+    if (items.length === 0) {
+        console.log('none');
+        return;
+    }
+    console.table(items.slice(0, limit));
+}
+async function main() {
+    try {
+        if (modeArg === 'apply') {
+            const applySummary = await applyImport({
+                workbookPath: filePath,
+                sourceFilename: filePath.split('/').pop() ?? filePath,
+                monthLabel: monthLabelArg,
+            });
+            console.log('Apply summary:');
+            console.dir(applySummary, { depth: null });
+            return;
+        }
+        const workbook = loadWorkbook(filePath);
+        const existingMembers = await getExistingMembers(workbook.rows);
+        const dryRunReport = buildDryRunReport(filePath, existingMembers);
+        console.log('Dry run report:');
+        console.dir({
+            workbook: dryRunReport.workbook,
+            counts: dryRunReport.counts,
+            validation: dryRunReport.validation,
+            duplicates: dryRunReport.duplicates,
+            overlaps: dryRunReport.overlaps,
+            importPlan: dryRunReport.importPlan,
+            memberActionPlan: dryRunReport.memberActionPlan,
+            coreMemberFieldUpdatePlan: dryRunReport.coreMemberFieldUpdatePlan,
+            sensitiveDetailPlan: dryRunReport.sensitiveDetailPlan,
+            historyActionPlan: dryRunReport.historyActionPlan,
+        }, { depth: null });
+        console.log('');
+        console.log('Sample planned actions:');
+        logSampleMemberUpdates(dryRunReport.sampleActions.memberUpdates);
+        console.log('');
+        logSampleMemberInactivations(dryRunReport.sampleActions.memberInactivations);
+        console.log('');
+        logSampleCoreMemberFieldUpdates(dryRunReport.sampleActions.coreMemberFieldUpdates);
+        console.log('');
+        logSampleSensitiveDetailUpdates(dryRunReport.sampleActions.sensitiveDetailUpdates);
+        console.log('');
+        logSampleHistoryRows(dryRunReport.sampleActions.historyRows);
+        if (DEBUG) {
+            console.log('');
+            console.log('Headers:');
+            logHeaders('active', getSheetHeaders(dryRunReport.debug.sheets.active));
+            console.log('');
+            logHeaders('leavers', getSheetHeaders(dryRunReport.debug.sheets.leavers));
+            console.log('');
+            logHeaders('promotions', getSheetHeaders(dryRunReport.debug.sheets.promotions));
+            console.log('');
+            console.log('Raw sample rows:');
+            logSampleRow('active', dryRunReport.debug.rows.active);
+            console.log('');
+            logSampleRow('leavers', dryRunReport.debug.rows.leavers);
+            console.log('');
+            logSampleRow('promotions', dryRunReport.debug.rows.promotions);
+            console.log('');
+            console.log('Normalized sample rows:');
+            logNormalizedSampleRow('active', dryRunReport.debug.rows.active);
+            console.log('');
+            logNormalizedSampleRow('leavers', dryRunReport.debug.rows.leavers);
+            console.log('');
+            logNormalizedSampleRow('promotions', dryRunReport.debug.rows.promotions);
+            console.log('');
+            console.log('Mapped sample rows:');
+            logMappedActiveSampleRow(dryRunReport.debug.rows.active);
+            console.log('');
+            logMappedLeaverSampleRow(dryRunReport.debug.rows.leavers);
+            console.log('');
+            logMappedPromotionSampleRow(dryRunReport.debug.rows.promotions);
+        }
+    }
+    catch (error) {
+        console.error('Import failed:');
+        if (error instanceof Error) {
+            console.error(error.message);
+        }
+        else {
+            console.error(error);
+        }
+        process.exit(1);
+    }
+}
+await main();
