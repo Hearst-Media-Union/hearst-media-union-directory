@@ -83,34 +83,133 @@
 
     <section
       v-if="dryRunResult"
-      class="mt-6 rounded-lg border border-(--color-border) bg-white p-5 shadow-sm"
+      class="space-y-5 rounded-lg border border-(--color-border) bg-white p-5 shadow-sm"
     >
-      <h2 class="font-condensed text-xl font-semibold text-(--color-brand-navy)">
-        Dry-Run Response
-      </h2>
+      <div class="space-y-1">
+        <p class="font-label text-xs tracking-wide text-(--color-brand-red)">Dry Run</p>
+        <h2 class="font-condensed text-2xl font-semibold text-(--color-brand-navy)">
+          {{ dryRunResult.workbookFile.name }}
+        </h2>
+        <p class="text-sm text-slate-600">
+          Active sheet: {{ dryRunResult.report.workbook.matchedSheetNames.active }}
+        </p>
+      </div>
 
-      <pre class="mt-4 max-h-128 overflow-auto rounded-md bg-slate-950 p-4 text-xs text-white">{{
-        JSON.stringify(dryRunResult, null, 2)
-      }}</pre>
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <article class="rounded-md bg-slate-50 p-4">
+          <p class="text-xs font-medium text-slate-500">Create members</p>
+          <p class="mt-1 font-condensed text-2xl font-semibold text-(--color-brand-navy)">
+            {{ dryRunResult.report.memberActionPlan.createCount }}
+          </p>
+        </article>
+
+        <article class="rounded-md bg-slate-50 p-4">
+          <p class="text-xs font-medium text-slate-500">Update members</p>
+          <p class="mt-1 font-condensed text-2xl font-semibold text-(--color-brand-navy)">
+            {{ dryRunResult.report.memberActionPlan.updateCount }}
+          </p>
+        </article>
+
+        <article class="rounded-md bg-slate-50 p-4">
+          <p class="text-xs font-medium text-slate-500">Inactivate members</p>
+          <p class="mt-1 font-condensed text-2xl font-semibold text-(--color-brand-navy)">
+            {{ dryRunResult.report.memberActionPlan.inactivateCount }}
+          </p>
+        </article>
+
+        <article class="rounded-md bg-slate-50 p-4">
+          <p class="text-xs font-medium text-slate-500">History rows</p>
+          <p class="mt-1 font-condensed text-2xl font-semibold text-(--color-brand-navy)">
+            {{ dryRunResult.report.historyActionPlan.rowCount }}
+          </p>
+        </article>
+      </div>
+
+      <div class="grid gap-4 lg:grid-cols-2">
+        <article class="rounded-md border border-(--color-border) p-4">
+          <h3 class="font-condensed text-lg font-semibold text-(--color-brand-navy)">
+            Workbook rows
+          </h3>
+
+          <dl class="mt-3 space-y-2 text-sm">
+            <div class="flex justify-between gap-4">
+              <dt class="text-slate-600">Active</dt>
+              <dd class="font-medium text-(--color-brand-navy)">
+                {{ dryRunResult.report.counts.raw.active }}
+              </dd>
+            </div>
+
+            <div class="flex justify-between gap-4">
+              <dt class="text-slate-600">Leavers</dt>
+              <dd class="font-medium text-(--color-brand-navy)">
+                {{ dryRunResult.report.counts.raw.leavers }}
+              </dd>
+            </div>
+
+            <div class="flex justify-between gap-4">
+              <dt class="text-slate-600">Promotions</dt>
+              <dd class="font-medium text-(--color-brand-navy)">
+                {{ dryRunResult.report.counts.raw.promotions }}
+              </dd>
+            </div>
+
+            <div class="flex justify-between gap-4 border-t border-(--color-border) pt-2">
+              <dt class="text-slate-600">Existing members matched</dt>
+              <dd class="font-medium text-(--color-brand-navy)">
+                {{ dryRunResult.report.counts.existingMembers }}
+              </dd>
+            </div>
+          </dl>
+        </article>
+
+        <article class="rounded-md border border-(--color-border) p-4">
+          <h3 class="font-condensed text-lg font-semibold text-(--color-brand-navy)">
+            Planned changes
+          </h3>
+
+          <dl class="mt-3 space-y-2 text-sm">
+            <div class="flex justify-between gap-4">
+              <dt class="text-slate-600">Core field updates</dt>
+              <dd class="font-medium text-(--color-brand-navy)">
+                {{ dryRunResult.report.coreMemberFieldUpdatePlan.updateCount }}
+              </dd>
+            </div>
+
+            <div class="flex justify-between gap-4">
+              <dt class="text-slate-600">Sensitive detail updates</dt>
+              <dd class="font-medium text-(--color-brand-navy)">
+                {{ dryRunResult.report.sensitiveDetailPlan.updateCount }}
+              </dd>
+            </div>
+
+            <div class="flex justify-between gap-4">
+              <dt class="text-slate-600">Duplicate employee numbers</dt>
+              <dd class="font-medium text-(--color-brand-navy)">
+                {{ duplicateCount }}
+              </dd>
+            </div>
+
+            <div class="flex justify-between gap-4">
+              <dt class="text-slate-600">Cross-sheet overlaps</dt>
+              <dd class="font-medium text-(--color-brand-navy)">
+                {{ overlapCount }}
+              </dd>
+            </div>
+          </dl>
+        </article>
+      </div>
     </section>
   </main>
 </template>
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { supabase } from '@/lib/supabaseClient'
-
-type DryRunResponse = {
-  workbookFile: {
-    name: string
-    size: number
-  }
-  report: Record<string, unknown>
-}
+import type { ImportDryRunResponse } from '@/types/import'
 
 const selectedWorkbook = ref<File | null>(null)
 const isRunningDryRun = ref(false)
 const dryRunError = ref('')
-const dryRunResult = ref<DryRunResponse | null>(null)
+const dryRunResult = ref<ImportDryRunResponse | null>(null)
 
 const selectedWorkbookName = computed(() => selectedWorkbook.value?.name ?? '')
 
@@ -133,6 +232,22 @@ const selectedWorkbookLastModified = computed(() => {
     year: 'numeric',
   }).format(selectedWorkbook.value.lastModified)
 })
+
+const duplicateCount = computed(() => {
+  const duplicates = dryRunResult.value?.report.duplicates
+
+  if (!duplicates) {
+    return 0
+  }
+
+  return (
+    duplicates.active.duplicateCount +
+    duplicates.leavers.duplicateCount +
+    duplicates.promotions.duplicateCount
+  )
+})
+
+const overlapCount = computed(() => dryRunResult.value?.report.overlaps.totalOverlapCount ?? 0)
 
 function handleWorkbookChange(event: Event) {
   const input = event.target
@@ -165,9 +280,12 @@ async function runDryRun() {
   formData.append('workbook', selectedWorkbook.value)
 
   try {
-    const { data, error } = await supabase.functions.invoke<DryRunResponse>('import-dry-run', {
-      body: formData,
-    })
+    const { data, error } = await supabase.functions.invoke<ImportDryRunResponse>(
+      'import-dry-run',
+      {
+        body: formData,
+      },
+    )
 
     if (error) {
       throw error
